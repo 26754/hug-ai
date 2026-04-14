@@ -66,6 +66,7 @@ export default async function startServe(randomPort: Boolean = false) {
   app.use(async (req, res, next) => {
     // 白名单路径（不需要认证）- 使用精确匹配
     const whiteList = [
+      "/", // 根路径
       "/api/login/login",          // 登录
       "/api/login/login/refresh", // 刷新 token (在 login 路由下)
       "/api/auth/register",        // 注册
