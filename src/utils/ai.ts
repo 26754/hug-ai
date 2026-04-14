@@ -31,7 +31,7 @@ async function getVendorTemplateFn(fnName: FnName, modelName: `${string}:${strin
   if (!selectedModel) throw new Error(`未找到模型 ${name} id=${id}`);
   const code = u.vendor.getCode(id);
   const jsCode = transform(code, { transforms: ["typescript"] }).code;
-  const running = u.vm(jsCode);
+  const running = u.runCode(jsCode);
   if (running.vendor) {
     Object.assign(running.vendor.inputValues, JSON.parse(vendorConfigData.inputValues ?? "{}"));
     running.vendor.models = modelList;

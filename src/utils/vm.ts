@@ -12,8 +12,20 @@ import { createXai } from "@ai-sdk/xai";
 import { createMinimax } from "vercel-minimax-ai-provider";
 import FormData from "form-data";
 import jsonwebtoken from "jsonwebtoken";
-import u from "@/utils";
-export default function runCode(code: string, vendor?: Record<string, any>) {
+
+// 注意：不要在这里导入 utils，否则会导致循环依赖
+
+/**
+ * 火山引擎配置
+ * 火山引擎方舟 API: https://ark.cn-beijing.volces.com/api/v3
+ */
+const volcengineConfig = {
+  apiKey: process.env.VOLCENGINE_API_KEY || '',
+  baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
+  defaultModel: 'doubao-seed-2-0-mini-260215',
+};
+
+function runCode(code: string, vendor?: Record<string, any>) {
   code = code.replace(/export\s*\{\s*\};?/g, ""); // 去掉 export {} 以免沙盒环境报错
   // 创建一个沙盒
   const exports = {};
@@ -27,6 +39,16 @@ export default function runCode(code: string, vendor?: Record<string, any>) {
     createXai,
     createMinimax,
     createGoogleGenerativeAI,
+    volcengineConfig,
+    // 火山引擎创建函数
+    createVolcengine: (apiKey?: string) => {
+      const VOLCENGINE_API_KEY = apiKey || process.env.VOLCENGINE_API_KEY;
+      return createOpenAICompatible({
+        name: 'volcengine',
+        baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
+        apiKey: VOLCENGINE_API_KEY,
+      });
+    },
     zipImage,
     zipImageResolution,
     urlToBase64,
@@ -54,13 +76,13 @@ export default function runCode(code: string, vendor?: Record<string, any>) {
 
   return exports as Record<string, any>;
 }
-export function logger(logstring: string) {
+function logger(logstring: string) {
   console.log("【VM】" + logstring);
 }
 /**
  * 压缩图片，目标字节数不高于 size
  */
-export async function zipImage(completeBase64: string, size: number): Promise<string> {
+async function zipImage(completeBase64: string, size: number): Promise<string> {
   let quality = 80;
   let buffer = Buffer.from(completeBase64.split(",")[1], "base64");
   let output = await sharp(buffer).jpeg({ quality }).toBuffer();
@@ -71,21 +93,21 @@ export async function zipImage(completeBase64: string, size: number): Promise<st
   return "data:image/jpeg;base64," + output.toString("base64");
 }
 
-export async function zipImageResolution(completeBase64: string, width: number, height: number): Promise<string> {
+async function zipImageResolution(completeBase64: string, width: number, height: number): Promise<string> {
   const buffer = Buffer.from(completeBase64.split(",")[1], "base64");
   const out = await sharp(buffer).resize(width, height).toBuffer();
   return `data:image/jpeg;base64,${out.toString("base64")}`;
 }
 
 //url转Base64
-export async function urlToBase64(url: string): Promise<string> {
+async function urlToBase64(url: string): Promise<string> {
   const res = await axios.get(url, { responseType: "arraybuffer" });
   const mime = res.headers["content-type"] || "image/jpeg";
   const b64 = Buffer.from(res.data).toString("base64");
   return `data:${mime};base64,${b64}`;
 }
 
-export async function pollTask(
+async function pollTask(
   fn: () => Promise<{ completed: boolean; data?: string; error?: string }>,
   interval = 3000,
   timeout = 3000000,
@@ -110,12 +132,11 @@ export async function pollTask(
  * @param maxSize - 最大输出大小，支持格式如 "10mb", "5MB", "1024kb" 等
  * @returns 拼接后的图片base64字符串
  */
-export async function mergeImages(imageBase64List: string[], maxSize = "10mb"): Promise<string> {
+async function mergeImages(imageBase64List: string[], maxSize = "10mb"): Promise<string> {
   if (imageBase64List.length === 0) {
     throw new Error("图片列表不能为空");
   }
 
-  const maxBytes = parseSize(maxSize);
   const imageBuffers = imageBase64List.map(base64ToBuffer);
   const imageMetadatas = await Promise.all(imageBuffers.map((buffer) => sharp(buffer).metadata()));
   const maxHeight = Math.max(...imageMetadatas.map((m) => m.height || 0));
@@ -154,8 +175,9 @@ export async function mergeImages(imageBase64List: string[], maxSize = "10mb"): 
     .toBuffer();
 
   // 复用压缩逻辑
+  const maxBytes = parseSize(maxSize);
   const resultBuffer = await compressToSize(mergedBuffer, maxBytes, totalWidth, maxHeight);
-  return resultBuffer.toString("base64");
+  return "data:image/jpeg;base64," + resultBuffer.toString("base64");
 }
 
 /**
@@ -210,3 +232,11 @@ async function compressToSize(imageBuffer: Buffer, maxBytes: number, originalWid
     }
   }
 }
+
+// vm 函数是 runCode 的别名，供 vendor.ts 使用
+function vm(code: string, vendor?: Record<string, any>) {
+  return runCode(code, vendor);
+}
+
+export { runCode, vm, volcengineConfig, urlToBase64, zipImage, zipImageResolution, mergeImages, pollTask };
+export default { runCode, vm, volcengineConfig, urlToBase64, zipImage, zipImageResolution, mergeImages, pollTask };
