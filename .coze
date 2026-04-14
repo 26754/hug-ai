@@ -3,9 +3,9 @@ requires = ["nodejs-24"]
 entrypoint = "src/app.ts"
 
 [dev]
-build = ["pnpm", "install"]
+build = ["pnpm", "install", "--ignore-scripts"]
 run = ["pnpm", "dev"]
 
 [deploy]
-build = ["pnpm", "install"]
-run = ["pnpm", "start"]
+build = ["bash", "-c", "export npm_config_disturl=https://registry.npmmirror.com/mirrors/node && export npm_config_build_from_source=false && cd /workspace/projects && pnpm install --ignore-scripts && (cd node_modules/.pnpm/better-sqlite3@12.9.0/node_modules/better-sqlite3 && npx -y node-gyp@10.1.0 rebuild --release || echo 'Better-sqlite3 build skipped')"]
+run = ["bash", "-c", "cd /workspace/projects && export NODE_ENV=prod && node data/serve/app.js"]

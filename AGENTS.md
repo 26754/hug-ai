@@ -62,7 +62,7 @@ coze dev
 ### 手动运行
 
 ```bash
-# 编译 better-sqlite3 原生模块 (如需要)
+# 编译 better-sqlite3 原生模块 (需要 node-gyp)
 cd node_modules/.pnpm/better-sqlite3@12.9.0/node_modules/better-sqlite3
 node-gyp rebuild
 
@@ -79,6 +79,8 @@ node data/serve/app.js
 |--------|------|--------|
 | `DEPLOY_RUN_PORT` | 服务监听端口 | 5000 |
 | `NODE_ENV` | 运行环境 | prod |
+| `SUPABASE_URL` | Supabase 项目 URL | - |
+| `SUPABASE_ANON_KEY` | Supabase 匿名密钥 | - |
 
 ## Supabase Auth 集成
 
@@ -197,6 +199,22 @@ CREATE POLICY "Users can insert own profile" ON user_profiles
 3. **Token 认证**: 除登录接口外，所有 API 需要有效的 Bearer Token
 4. **数据库**: SQLite 数据库文件位于 `data/db2.sqlite`
 5. **Supabase**: 用户认证使用 Supabase Auth，需要配置 `.env` 中的 `SUPABASE_URL` 和 `SUPABASE_ANON_KEY`
+
+## 部署说明
+
+### better-sqlite3 编译问题
+
+部署时 `better-sqlite3` 原生模块可能编译失败，需要使用 npmmirror 镜像：
+
+```bash
+export npm_config_disturl=https://registry.npmmirror.com/mirrors/node
+export npm_config_build_from_source=false
+pnpm install --ignore-scripts
+cd node_modules/.pnpm/better-sqlite3@12.9.0/node_modules/better-sqlite3
+npx -y node-gyp@10.1.0 rebuild --release
+```
+
+`.coze` 文件已配置自动编译步骤。
 
 ## 常见问题
 
