@@ -12,11 +12,12 @@
 ## 技术栈
 
 - **运行时**: Node.js 24+
-- **语言**: TypeScript
-- **框架**: Express.js + Vue.js 3
+- **语言**: TypeScript / JavaScript
+- **后端**: Express.js + Vue.js 3
+- **前端**: Vue 3 + Vite + Pinia + Vue Router
 - **数据库**: SQLite (better-sqlite3) + Supabase Auth
 - **AI SDK**: @ai-sdk (支持 Anthropic, DeepSeek, Google, OpenAI, XAI 等)
-- **打包**: esbuild, Electron (可选)
+- **打包**: esbuild, Vite
 - **包管理器**: pnpm
 - **认证**: Supabase Auth (JWT Token)
 
@@ -24,13 +25,24 @@
 
 ```
 /workspace/projects/
-├── src/                    # 源代码
+├── src/                    # 后端源代码
 │   ├── app.ts             # Express 服务器入口
 │   ├── router.ts          # 路由配置
 │   ├── routes/            # API 路由
 │   ├── agents/            # AI Agent 实现
 │   ├── utils/             # 工具函数
 │   └── socket/            # WebSocket 处理
+├── src-web/               # 前端应用 (可独立部署)
+│   ├── src/
+│   │   ├── pages/         # 页面组件 (Login, Register, Home)
+│   │   ├── components/     # 通用组件
+│   │   ├── stores/         # Pinia 状态管理
+│   │   ├── router/        # Vue Router 配置
+│   │   ├── utils/         # 工具函数
+│   │   └── styles/        # CSS 样式
+│   ├── dist/              # 构建输出
+│   ├── vite.config.js     # Vite 配置
+│   └── package.json       # 前端依赖
 ├── scripts/               # 构建脚本
 │   └── build.ts           # 项目打包配置
 ├── data/                  # 数据目录
@@ -39,14 +51,34 @@
 │   ├── skills/            # 技能数据
 │   └── assets/            # 资源文件
 ├── build/                 # 构建输出
-├── package.json           # 项目配置
+├── package.json           # 后端依赖
 ├── tsconfig.json          # TypeScript 配置
 └── .coze                  # Coze 部署配置
 ```
 
 ## 构建和运行命令
 
-### Coze 环境 (推荐)
+### 前端应用 (src-web/)
+
+```bash
+cd src-web
+
+# 安装依赖
+pnpm install
+
+# 开发模式
+pnpm dev
+
+# 构建生产版本
+pnpm build
+
+# 预览构建结果
+pnpm preview
+```
+
+### 后端服务 (src/)
+
+#### Coze 环境 (推荐)
 
 ```bash
 # 安装依赖 (忽略 Electron postinstall)
@@ -59,7 +91,7 @@ NODE_PATH=/workspace/projects/node_modules/.pnpm/node_modules node /workspace/pr
 coze dev
 ```
 
-### 手动运行
+#### 手动运行
 
 ```bash
 # 编译 better-sqlite3 原生模块 (需要 node-gyp)
