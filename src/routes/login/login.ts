@@ -1,9 +1,11 @@
 import express from "express";
+import bcrypt from "bcryptjs";
 import u from "@/utils";
 import jwt from "jsonwebtoken";
 import { success, error } from "@/lib/responseFormat";
 import { validateFields } from "@/middleware/middleware";
 import { z } from "zod";
+
 const router = express.Router();
 
 export function setToken(payload: string | object, expiresIn: string | number, secret: string): string {
@@ -14,7 +16,7 @@ export function setToken(payload: string | object, expiresIn: string | number, s
 }
 
 // 登录
-export default router.post(
+router.post(
   "/",
   validateFields({
     username: z.string(),
@@ -23,24 +25,48 @@ export default router.post(
   async (req, res) => {
     const { username, password } = req.body;
 
-    const data = await u.db("o_user").where("name", "=", username).first();
-    if (!data) return res.status(400).send(error("登录失败"));
+    try {
+      const data = await u.db("o_user").where("name", "=", username).first();
+      if (!data) {
+        return res.status(400).send(error("用户不存在"));
+      }
 
-    if (data!.password == password && data!.name == username) {
+      // 使用 bcrypt 验证密码
+      const isPasswordValid = bcrypt.compareSync(password, data.password || "");
+      
+      if (!isPasswordValid) {
+        return res.status(400).send(error("用户名或密码错误"));
+      }
+
       const tokenData = await u.db("o_setting").where("key", "tokenKey").first();
-      if (!tokenData) return res.status(400).send(error("未找到tokenKey"));
+      if (!tokenData) {
+        return res.status(400).send(error("未找到 tokenKey"));
+      }
+
       const token = setToken(
         {
-          id: data!.id,
-          name: data!.name,
+          id: data.id,
+          name: data.name,
         },
         "180Days",
-        tokenData?.value as string,
+        tokenData.value as string
       );
 
-      return res.status(200).send(success({ token: "Bearer " + token, name: data!.name, id: data!.id }, "登录成功"));
-    } else {
-      return res.status(400).send(error("用户名或密码错误"));
+      return res.status(200).send(
+        success(
+          {
+            token: "Bearer " + token,
+            name: data.name,
+            id: data.id,
+          },
+          "登录成功"
+        )
+      );
+    } catch (err) {
+      console.error("登录失败:", err);
+      return res.status(500).send(error("登录失败"));
     }
-  },
+  }
 );
+
+export default router;
