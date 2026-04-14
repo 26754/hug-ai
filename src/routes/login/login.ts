@@ -3,12 +3,18 @@ import { getSupabase } from "@/storage/supabase/client";
 import { success, error } from "@/lib/responseFormat";
 import { validateFields } from "@/middleware/middleware";
 import { z } from "zod";
+import { getUserProfile } from "@/services/userProfile";
 
 const router = express.Router();
 
 /**
+ * 登录错误消息（隐藏具体原因，防止枚举攻击）
+ */
+const LOGIN_ERROR_MESSAGE = "邮箱或密码错误";
+
+/**
  * POST /api/login/login
- * 使用 Supabase Auth 登录
+ * 用户登录
  * 
  * @body { email: string, password: string }
  */
@@ -16,7 +22,7 @@ router.post(
   "/",
   validateFields({
     email: z.string().email("无效的邮箱格式"),
-    password: z.string(),
+    password: z.string().min(1, "请输入密码"),
   }),
   async (req, res) => {
     const { email, password } = req.body;
@@ -30,14 +36,18 @@ router.post(
         password,
       });
 
+      // 隐藏具体错误原因
       if (authError) {
-        console.error("Supabase 登录失败:", authError);
-        return res.status(401).send(error(authError.message));
+        console.error("登录失败:", authError.message);
+        return res.status(401).send(error(LOGIN_ERROR_MESSAGE));
       }
 
       if (!data.session || !data.user) {
-        return res.status(401).send(error("登录失败"));
+        return res.status(401).send(error(LOGIN_ERROR_MESSAGE));
       }
+
+      // 获取用户资料
+      const profile = await getUserProfile(data.user.id);
 
       // 返回用户信息和 Token
       return res.status(200).send(
@@ -48,8 +58,9 @@ router.post(
             user: {
               id: data.user.id,
               email: data.user.email,
-              username: data.user.user_metadata?.username || data.user.email?.split("@")[0],
-              avatar_url: data.user.user_metadata?.avatar_url,
+              username: profile?.username || data.user.user_metadata?.username || data.user.email?.split("@")[0],
+              display_name: profile?.display_name,
+              avatar_url: profile?.avatar_url,
             },
             expires_at: data.session.expires_at,
           },
@@ -58,7 +69,7 @@ router.post(
       );
     } catch (err: any) {
       console.error("登录失败:", err);
-      return res.status(500).send(error(err.message || "登录失败"));
+      return res.status(500).send(error("服务器错误，请稍后重试"));
     }
   }
 );
@@ -85,7 +96,8 @@ router.post(
       });
 
       if (refreshError) {
-        return res.status(401).send(error(refreshError.message));
+        console.error("Token 刷新失败:", refreshError.message);
+        return res.status(401).send(error("会话已过期，请重新登录"));
       }
 
       return res.status(200).send(
@@ -100,7 +112,7 @@ router.post(
       );
     } catch (err: any) {
       console.error("Token 刷新失败:", err);
-      return res.status(500).send(error(err.message || "Token 刷新失败"));
+      return res.status(500).send(error("服务器错误"));
     }
   }
 );

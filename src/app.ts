@@ -72,6 +72,7 @@ export default async function startServe(randomPort: Boolean = false) {
   // Supabase Token 验证中间件
   app.use(async (req, res, next) => {
     // 白名单路径（不需要认证）
+    // 白名单路径（不需要认证）
     const whiteList = [
       "/api/login/login",
       "/api/login/refresh",

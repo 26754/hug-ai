@@ -14,10 +14,11 @@
 - **运行时**: Node.js 24+
 - **语言**: TypeScript
 - **框架**: Express.js + Vue.js 3
-- **数据库**: SQLite (better-sqlite3)
+- **数据库**: SQLite (better-sqlite3) + Supabase Auth
 - **AI SDK**: @ai-sdk (支持 Anthropic, DeepSeek, Google, OpenAI, XAI 等)
 - **打包**: esbuild, Electron (可选)
 - **包管理器**: pnpm
+- **认证**: Supabase Auth (JWT Token)
 
 ## 目录结构
 
@@ -79,6 +80,73 @@ node data/serve/app.js
 | `DEPLOY_RUN_PORT` | 服务监听端口 | 5000 |
 | `NODE_ENV` | 运行环境 | prod |
 
+## Supabase Auth 集成
+
+项目使用 Supabase 进行用户认证，配置文件位于：
+
+```
+src/storage/supabase/client.ts
+```
+
+### 环境变量配置
+
+在 `.env` 文件中配置 Supabase：
+
+```
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+```
+
+### 认证 API 接口
+
+| 接口 | 方法 | 说明 | 认证 |
+|------|------|------|------|
+| `/api/auth/register` | POST | 用户注册 | 否 |
+| `/api/login/login` | POST | 用户登录 | 否 |
+| `/api/auth/me` | GET | 获取当前用户信息 | 是 |
+| `/api/auth/logout` | POST | 退出登录 | 是 |
+| `/api/auth/updateProfile` | POST | 更新用户资料 | 是 |
+
+### 认证中间件
+
+认证中间件位于 `src/app.ts`，白名单路径：
+- `/api/login/login`
+- `/api/login/refresh`
+- `/api/auth/register`
+- `/api/other/getVersion`
+
+### 用户资料表 (user_profiles)
+
+```sql
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  username TEXT UNIQUE,
+  display_name TEXT,
+  avatar_url TEXT,
+  bio TEXT,
+  phone TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+启用 RLS:
+```sql
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- 用户只能查看自己的资料
+CREATE POLICY "Users can view own profile" ON user_profiles
+  FOR SELECT USING (auth.uid() = id);
+
+-- 用户只能更新自己的资料
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+-- 用户只能插入自己的资料
+CREATE POLICY "Users can insert own profile" ON user_profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+```
+
 ## API 接口
 
 项目提供 REST API 接口，需要 Bearer Token 认证：
@@ -105,6 +173,7 @@ node data/serve/app.js
 2. **原生模块**: better-sqlite3 需要编译原生模块，使用 `--ignore-scripts` 安装后需手动编译
 3. **Token 认证**: 除登录接口外，所有 API 需要有效的 Bearer Token
 4. **数据库**: SQLite 数据库文件位于 `data/db2.sqlite`
+5. **Supabase**: 用户认证使用 Supabase Auth，需要配置 `.env` 中的 `SUPABASE_URL` 和 `SUPABASE_ANON_KEY`
 
 ## 常见问题
 
