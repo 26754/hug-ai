@@ -102,18 +102,41 @@ SUPABASE_ANON_KEY=your-anon-key
 | 接口 | 方法 | 说明 | 认证 |
 |------|------|------|------|
 | `/api/auth/register` | POST | 用户注册 | 否 |
+| `/api/auth/verify-email` | POST | 发送邮箱验证邮件 | 否 |
 | `/api/login/login` | POST | 用户登录 | 否 |
+| `/api/login/refresh` | POST | 刷新 Token | 否 |
+| `/api/login/sessions` | GET | 获取会话列表 | 是 |
+| `/api/login/sessions/:id` | DELETE | 撤销指定会话 | 是 |
 | `/api/auth/me` | GET | 获取当前用户信息 | 是 |
 | `/api/auth/logout` | POST | 退出登录 | 是 |
 | `/api/auth/updateProfile` | POST | 更新用户资料 | 是 |
 
 ### 认证中间件
 
-认证中间件位于 `src/app.ts`，白名单路径：
+认证中间件位于 `src/app.ts`，白名单路径（精确匹配）：
 - `/api/login/login`
 - `/api/login/refresh`
 - `/api/auth/register`
+- `/api/auth/verify-email`
 - `/api/other/getVersion`
+
+### 安全优化功能
+
+1. **频率限制（Rate Limiting）**：
+   - 登录：15 分钟内最多 5 次尝试，锁定 30 分钟
+   - 注册：1 小时内最多 3 次尝试，锁定 24 小时
+   - Token 刷新：5 分钟内最多 10 次，锁定 15 分钟
+   - 配置文件：`src/middleware/rateLimit.ts`
+
+2. **会话管理**：
+   - 支持多设备登录（最多 5 个设备）
+   - 可查看和撤销其他会话
+   - 自动清理过期会话
+   - 配置文件：`src/services/sessionManager.ts`
+
+3. **错误隐藏**：
+   - 登录失败返回通用错误信息，防止枚举攻击
+   - 注册失败隐藏具体原因
 
 ### 用户资料表 (user_profiles)
 

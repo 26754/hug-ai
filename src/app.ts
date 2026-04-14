@@ -71,16 +71,21 @@ export default async function startServe(randomPort: Boolean = false) {
 
   // Supabase Token 验证中间件
   app.use(async (req, res, next) => {
-    // 白名单路径（不需要认证）
-    // 白名单路径（不需要认证）
+    // 白名单路径（不需要认证）- 使用精确匹配
     const whiteList = [
-      "/api/login/login",
-      "/api/login/refresh",
-      "/api/auth/register",
-      "/api/other/getVersion",
+      "/api/login/login",          // 登录
+      "/api/login/login/refresh", // 刷新 token (在 login 路由下)
+      "/api/auth/register",        // 注册
+      "/api/auth/verify-email",   // 验证邮箱
+      "/api/other/getVersion",    // 获取版本
     ];
     
-    if (whiteList.some(path => req.path.startsWith(path))) {
+    // 精确匹配白名单路径
+    const isWhiteListed = whiteList.some(path => 
+      req.path === path || req.path === path + "/"
+    );
+    
+    if (isWhiteListed) {
       return next();
     }
 
