@@ -6,10 +6,40 @@ if (isElectron) {
   isPackaged = app.isPackaged;
 }
 
-//加载环境变量（打包环境默认使用 prod）
+// 加载 .env 环境变量文件
+try {
+  const fs = require("fs");
+  const path = require("path");
+  const envPath = path.join(process.cwd(), ".env");
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, "utf-8");
+    envContent.split("\n").forEach((line: string) => {
+      line = line.trim();
+      if (line && !line.startsWith("#")) {
+        const [key, ...valueParts] = line.split("=");
+        const value = valueParts.join("=");
+        if (key && value) {
+          process.env[key.trim()] = value.trim();
+        }
+      }
+    });
+    console.log("[环境变量：已加载 .env 文件]");
+  }
+} catch (err) {
+  console.log("[环境变量：.env 文件加载失败]", err);
+}
+
+// 加载环境变量（打包环境默认使用 prod）
 const env = process.env.NODE_ENV;
 if (!env) {
   if (isElectron) process.env.NODE_ENV = "prod";
   else process.env.NODE_ENV = "dev";
   console.log(`[环境变量：${process.env.NODE_ENV}]`);
+}
+
+// 输出 Supabase 配置状态
+if (process.env.SUPABASE_URL) {
+  console.log("[Supabase：已配置]");
+} else {
+  console.log("[Supabase：未配置]");
 }

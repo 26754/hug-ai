@@ -69,26 +69,50 @@ export default async function startServe(randomPort: Boolean = false) {
     console.warn("静态网站目录不存在:", webDir);
   }
 
-  // 登录验证中间件已禁用
-  // app.use(async (req, res, next) => {
-  //   const setting = await u.db("o_setting").where("key", "tokenKey").select("value").first();
-  //   if (!setting) return res.status(444).send({ message: "服务器秘钥未配置，请联系管理员" });
-  //   const { value: tokenKey } = setting;
-  //   // 从 header 或 query 参数获取 token
-  //   const rawToken = req.headers.authorization || (req.query.token as string) || "";
-  //   const token = rawToken.replace("Bearer ", "");
-  //   // 白名单路径
-  //   if (req.path === "/api/login/login") return next();
+  // Supabase Token 验证中间件
+  app.use(async (req, res, next) => {
+    // 白名单路径（不需要认证）
+    const whiteList = [
+      "/api/login/login",
+      "/api/login/refresh",
+      "/api/auth/register",
+      "/api/other/getVersion",
+    ];
+    
+    if (whiteList.some(path => req.path.startsWith(path))) {
+      return next();
+    }
 
-  //   if (!token) return res.status(401).send({ message: "未提供token" });
-  //   try {
-  //     const decoded = jwt.verify(token, tokenKey as string);
-  //     (req as any).user = decoded;
-  //     next();
-  //   } catch (err) {
-  //     return res.status(401).send({ message: "无效的token" });
-  //   }
-  // });
+    // 从 header 获取 token
+    const rawToken = req.headers.authorization || (req.query.token as string) || "";
+    const token = rawToken.replace("Bearer ", "");
+
+    if (!token) {
+      return res.status(401).send({ message: "未提供token" });
+    }
+
+    try {
+      const { getSupabase } = await import("@/storage/supabase/client");
+      const supabase = getSupabase();
+      
+      // 验证 Supabase JWT Token
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      
+      if (error || !user) {
+        return res.status(401).send({ message: "无效的token" });
+      }
+      
+      (req as any).user = {
+        id: user.id,
+        email: user.email,
+        username: user.user_metadata?.username,
+      };
+      next();
+    } catch (err) {
+      console.error("Token 验证失败:", err);
+      return res.status(401).send({ message: "token验证失败" });
+    }
+  });
 
   const router = await import("@/router");
   await router.default(app);

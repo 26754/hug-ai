@@ -44,6 +44,7 @@
     "@ai-sdk/xai": "^3.0.47",
     "@huggingface/transformers": "^3.8.1",
     "@rmp135/sql-ts": "^2.2.0",
+    "@supabase/supabase-js": "^2.103.0",
     "ai": "^6.0.67",
     "axios": "^1.13.2",
     "axios-retry": "^4.5.0",
