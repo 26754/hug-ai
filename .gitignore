@@ -1,90 +1,59 @@
+.devtools
+# dependencies (bun install)
 node_modules
+.vscode
+# output
+out
 dist
-.DS_Store
-*.swp
-.git/*
-__pycache__/
-*.pyc
-.venv/*
-*.o
-*.a
-/vendor
-*.egg-info/
-/.env
-.env
+*.tgz
 
-# JS/TS bundlers & build outputs
-.next
-.nuxt
-.turbo
-.vercel
-.parcel-cache
-.cache
+# code coverage
 coverage
-storybook-static
+*.lcov
 
-# Package manager artifacts
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
-.pnp*
-.npm
+# logs
+logs
+_.log
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
-# Python tooling
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.tox/
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
 
-# Go tooling
-bin/
-*.test
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
 
-# Editor / IDE
-.vscode/
-.idea/
-*.iml
+# IntelliJ based IDEs
+.idea
 
-# OS / misc
-Thumbs.db
-ehthumbs.db
+# Finder (MacOS) folder config
+.DS_Store
 
-# Logs
-output.log
-*.log
-*.log.*
-logs/
+build/*
 
-# 视频文件
-*.mp4
-*.avi
-*.mov
-*.wmv
-*.flv
-*.mkv
-*.webm
-*.m4v
-*.mpeg
-*.mpg
-*.3gp
-*.f4v
-*.rmvb
-*.vob
+data/serve/
 
-# 归档文件
-*.iso
-*.dmg
-*.rar
-*.zip
-*.gz
+upload/*
+uploads/*
 
-# 文档类也默认加入
-*.pdf
-*.docx
-*.doc
-*.xlsx
-*.xls
-*.ppt
-*.pptx
-*.xlsx
-*.csv
+db.sqlite
+db.sqlite-shm
+db.sqlite-wal
+
+web/*
+
+*.sqlite
+
+router.ts
+
+database.d.ts
+
+.devtools
+data/oss/*
+data/test.sqlite
+version.txt
