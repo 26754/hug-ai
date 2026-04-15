@@ -69,20 +69,21 @@ export default async function startServe(randomPort: Boolean = false) {
     console.warn("静态网站目录不存在:", webDir);
   }
 
-  // Supabase Token 验证中间件
+  // Neon JWT Token 验证中间件
   app.use(async (req, res, next) => {
-    // 白名单路径（不需要认证）- 使用精确匹配
+    // 白名单路径（不需要认证）- 使用前缀匹配
     const whiteList = [
-      "/api/login/login",          // 登录
-      "/api/login/login/refresh", // 刷新 token (在 login 路由下)
-      "/api/auth/register",        // 注册
-      "/api/auth/verify-email",   // 验证邮箱
-      "/api/other/getVersion",    // 获取版本
+      "/api/auth/register",           // 注册
+      "/api/auth/register/login",     // 登录 (Neon Auth)
+      "/api/auth/login",              // 登录 (备用)
+      "/api/login/login/refresh",     // 刷新 token
+      "/api/login/refresh",           // 刷新 token (别名)
+      "/api/other/getVersion",        // 获取版本
     ];
     
-    // 精确匹配白名单路径
+    // 检查路径是否在白名单中（支持子路径）
     const isWhiteListed = whiteList.some(path => 
-      req.path === path || req.path === path + "/"
+      req.path === path || req.path.startsWith(path + "/") || req.path.startsWith(path)
     );
     
     if (isWhiteListed) {
@@ -98,20 +99,19 @@ export default async function startServe(randomPort: Boolean = false) {
     }
 
     try {
-      const { getSupabase } = await import("@/storage/supabase/client");
-      const supabase = getSupabase();
+      const { verifyJWT } = await import("@/services/neonAuth");
       
-      // 验证 Supabase JWT Token
-      const { data: { user }, error } = await supabase.auth.getUser(token);
+      // 验证 Neon JWT Token
+      const result = verifyJWT(token);
       
-      if (error || !user) {
-        return res.status(401).send({ message: "无效的token" });
+      if (!result.valid) {
+        return res.status(401).send({ message: result.error || "无效的token" });
       }
       
       (req as any).user = {
-        id: user.id,
-        email: user.email,
-        username: user.user_metadata?.username,
+        id: result.payload?.sub,
+        email: result.payload?.email,
+        username: result.payload?.username,
       };
       next();
     } catch (err) {

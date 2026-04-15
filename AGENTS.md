@@ -15,11 +15,12 @@
 - **语言**: TypeScript / JavaScript
 - **后端**: Express.js + Vue.js 3
 - **前端**: Vue 3 + Vite + Pinia + Vue Router
-- **数据库**: SQLite (better-sqlite3) + Supabase Auth
+- **数据库**: SQLite (better-sqlite3) + Neon (Serverless PostgreSQL)
+- **认证**: Neon Auth (自实现 JWT)
 - **AI SDK**: @ai-sdk (支持 Anthropic, DeepSeek, Google, OpenAI, XAI 等)
 - **打包**: esbuild, Vite
 - **包管理器**: pnpm
-- **认证**: Supabase Auth (JWT Token)
+- **认证**: Neon Auth (JWT Token)
 
 ## 目录结构
 
@@ -31,7 +32,10 @@
 │   ├── routes/            # API 路由
 │   ├── agents/            # AI Agent 实现
 │   ├── utils/             # 工具函数
-│   └── socket/            # WebSocket 处理
+│   ├── socket/            # WebSocket 处理
+│   ├── services/          # 服务层 (neonAuth, dataSync)
+│   ├── storage/neon/      # Neon 数据库客户端
+│   └── middleware/        # 中间件 (auth, rateLimit)
 ├── src-web/               # 前端应用 (可独立部署)
 │   ├── src/
 │   │   ├── pages/         # 页面组件 (Login, Register, Home)
@@ -111,50 +115,44 @@ node data/serve/app.js
 |--------|------|--------|
 | `DEPLOY_RUN_PORT` | 服务监听端口 | 5000 |
 | `NODE_ENV` | 运行环境 | prod |
-| `SUPABASE_URL` | Supabase 项目 URL | - |
-| `SUPABASE_ANON_KEY` | Supabase 匿名密钥 | - |
+| `JWT_SECRET` | JWT 签名密钥 | (内置默认值) |
+| `NEON_CONNECTION_STRING` | Neon 数据库连接字符串 | (可选) |
 
-## Supabase Auth 集成
+## Neon Auth 认证系统
 
-项目使用 Supabase 进行用户认证，配置文件位于：
+项目使用自实现的 Neon Auth 认证系统，支持内存存储（开发模式）和 Neon 数据库（生产模式）。
 
-```
-src/storage/supabase/client.ts
-```
+### 核心服务
 
-### 环境变量配置
-
-在 `.env` 文件中配置 Supabase：
-
-```
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-```
+| 文件 | 说明 |
+|------|------|
+| `src/storage/neon/client.ts` | Neon PostgreSQL 客户端 |
+| `src/services/neonAuth.ts` | 用户认证服务（注册、登录、Token） |
+| `src/services/dataSync.ts` | 数据同步服务 |
+| `src/middleware/auth.ts` | 认证中间件 |
 
 ### 认证 API 接口
 
 | 接口 | 方法 | 说明 | 认证 |
 |------|------|------|------|
 | `/api/auth/register` | POST | 用户注册 | 否 |
-| `/api/auth/verify-email` | POST | 发送邮箱验证邮件 | 否 |
-| `/api/login/login` | POST | 用户登录 | 否 |
-| `/api/login/refresh` | POST | 刷新 Token | 否 |
-| `/api/login/sessions` | GET | 获取会话列表 | 是 |
-| `/api/login/sessions/:id` | DELETE | 撤销指定会话 | 是 |
+| `/api/auth/register/login` | POST | 用户登录 (Neon) | 否 |
+| `/api/login/login/refresh` | POST | 刷新 Token | 否 |
+| `/api/login/refresh` | POST | 刷新 Token (别名) | 否 |
 | `/api/auth/me` | GET | 获取当前用户信息 | 是 |
 | `/api/auth/logout` | POST | 退出登录 | 是 |
-| `/api/auth/updateProfile` | POST | 更新用户资料 | 是 |
 
 ### 认证中间件
 
-认证中间件位于 `src/app.ts`，白名单路径（精确匹配）：
-- `/api/login/login`
-- `/api/login/refresh`
+认证中间件位于 `src/app.ts`，白名单路径：
 - `/api/auth/register`
-- `/api/auth/verify-email`
+- `/api/auth/register/login`
+- `/api/auth/login`
+- `/api/login/login/refresh`
+- `/api/login/refresh`
 - `/api/other/getVersion`
 
-### 安全优化功能
+### 安全功能
 
 1. **频率限制（Rate Limiting）**：
    - 登录：15 分钟内最多 5 次尝试，锁定 30 分钟
@@ -162,53 +160,37 @@ SUPABASE_ANON_KEY=your-anon-key
    - Token 刷新：5 分钟内最多 10 次，锁定 15 分钟
    - 配置文件：`src/middleware/rateLimit.ts`
 
-2. **会话管理**：
-   - 支持多设备登录（最多 5 个设备）
-   - 可查看和撤销其他会话
-   - 自动清理过期会话
-   - 配置文件：`src/services/sessionManager.ts`
+2. **密码验证**：
+   - 至少 8 个字符
+   - 必须包含小写字母、大写字母和数字
+   - 配置文件：`src/routes/auth/register.ts`
 
 3. **错误隐藏**：
    - 登录失败返回通用错误信息，防止枚举攻击
-   - 注册失败隐藏具体原因
 
-### 用户资料表 (user_profiles)
+### JWT Token 结构
 
-```sql
-CREATE TABLE user_profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  username TEXT UNIQUE,
-  display_name TEXT,
-  avatar_url TEXT,
-  bio TEXT,
-  phone TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+```typescript
+interface JWTPayload {
+  sub: string;      // 用户 ID
+  email: string;    // 用户邮箱
+  username: string; // 用户名
+  iat: number;      // 签发时间
+  exp: number;      // 过期时间
+}
 ```
 
-启用 RLS:
-```sql
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+### 存储模式
 
--- 用户只能查看自己的资料
-CREATE POLICY "Users can view own profile" ON user_profiles
-  FOR SELECT USING (auth.uid() = id);
-
--- 用户只能更新自己的资料
-CREATE POLICY "Users can update own profile" ON user_profiles
-  FOR UPDATE USING (auth.uid() = id);
-
--- 用户只能插入自己的资料
-CREATE POLICY "Users can insert own profile" ON user_profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
-```
+- **开发模式**：使用内存存储，无需配置
+- **生产模式**：配置 `NEON_CONNECTION_STRING` 使用 Neon PostgreSQL
 
 ## API 接口
 
-项目提供 REST API 接口，需要 Bearer Token 认证：
+项目提供 REST API 接口，需要 Bearer Token 认证（除白名单外）：
 
-- `/api/login/login` - 登录 (白名单)
+- `/api/login/*` - 登录相关
+- `/api/auth/*` - 认证相关
 - `/api/setting/*` - 设置相关
 - `/api/project/*` - 项目管理
 - `/api/agent/*` - AI Agent 接口
@@ -230,7 +212,7 @@ CREATE POLICY "Users can insert own profile" ON user_profiles
 2. **原生模块**: better-sqlite3 需要编译原生模块，使用 `--ignore-scripts` 安装后需手动编译
 3. **Token 认证**: 除登录接口外，所有 API 需要有效的 Bearer Token
 4. **数据库**: SQLite 数据库文件位于 `data/db2.sqlite`
-5. **Supabase**: 用户认证使用 Supabase Auth，需要配置 `.env` 中的 `SUPABASE_URL` 和 `SUPABASE_ANON_KEY`
+5. **Neon**: 用户认证支持 Neon PostgreSQL，需配置 `NEON_CONNECTION_STRING`
 
 ## 部署说明
 

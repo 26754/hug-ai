@@ -1,12 +1,9 @@
 import express from "express";
-import { getSupabaseAdmin, getSupabase } from "@/storage/supabase/client";
 import { success, error } from "@/lib/responseFormat";
 import { validateFields } from "@/middleware/middleware";
 import { z } from "zod";
-import { passwordSchema, usernameSchema } from "@/utils/validation";
-import { createUserProfile } from "@/services/userProfile";
 import { rateLimit } from "@/middleware/rateLimit";
-import { registerSession } from "@/services/sessionManager";
+import { registerUser, loginUser } from "@/services/neonAuth";
 
 const router = express.Router();
 
@@ -21,6 +18,16 @@ const REGISTER_ERROR_MESSAGES = {
 };
 
 /**
+ * 密码验证规则
+ */
+const passwordSchema = z
+  .string()
+  .min(8, "密码长度至少为 8 个字符")
+  .regex(/[a-z]/, "密码必须包含小写字母")
+  .regex(/[A-Z]/, "密码必须包含大写字母")
+  .regex(/[0-9]/, "密码必须包含数字");
+
+/**
  * POST /api/auth/register
  * 用户注册
  * 
@@ -28,141 +35,87 @@ const REGISTER_ERROR_MESSAGES = {
  */
 router.post(
   "/",
-  rateLimit("register"), // 防滥用
+  rateLimit("register"),
   validateFields({
     email: z.string()
       .email("无效的邮箱格式")
       .max(255, "邮箱长度不能超过 255 个字符"),
     password: passwordSchema,
-    username: usernameSchema.optional(),
+    username: z.string().max(100, "用户名不能超过 100 个字符").optional(),
   }),
   async (req, res) => {
     const { email, password, username } = req.body;
 
     try {
-      const supabase = getSupabaseAdmin();
-      const supabaseClient = getSupabase();
-      
-      // 标准化邮箱（转小写、去空格）
-      const normalizedEmail = email.toLowerCase().trim();
-      const generatedUsername = username?.trim() || `user_${Date.now().toString(36)}`;
+      const result = await registerUser(email, password, username);
 
-      // 检查用户名是否已存在（如果提供了用户名）
-      if (username) {
-        const { data: existingProfile } = await supabase
-          .from("user_profiles")
-          .select("username")
-          .eq("username", username.toLowerCase().trim())
-          .single();
-        
-        if (existingProfile) {
-          return res.status(400).send(error(REGISTER_ERROR_MESSAGES.usernameExists));
-        }
+      if (!result.success) {
+        return res.status(400).send(error(result.error || REGISTER_ERROR_MESSAGES.failed));
       }
-
-      // 使用 Supabase Auth 注册
-      const { data, error: authError } = await supabase.auth.admin.createUser({
-        email: normalizedEmail,
-        password,
-        email_confirm: true, // 自动确认邮箱（可配置为 false 以启用邮件验证）
-        user_metadata: {
-          username: generatedUsername,
-          registration_ip: req.ip || req.connection.remoteAddress,
-          registered_at: new Date().toISOString(),
-        },
-      });
-
-      if (authError) {
-        console.error("Supabase 注册失败:", authError);
-        
-        // 隐藏具体错误，防止枚举攻击
-        if (authError.message.includes("already been registered") ||
-            authError.message.includes("already exists")) {
-          return res.status(400).send(error(REGISTER_ERROR_MESSAGES.emailExists));
-        }
-        
-        // 检查频率限制错误
-        if (authError.message.includes("rate limit") ||
-            authError.message.includes("too many requests")) {
-          return res.status(429).send(error(REGISTER_ERROR_MESSAGES.rateLimit));
-        }
-        
-        return res.status(400).send(error(REGISTER_ERROR_MESSAGES.failed));
-      }
-
-      if (!data.user) {
-        return res.status(400).send(error(REGISTER_ERROR_MESSAGES.failed));
-      }
-
-      // 创建用户资料（异步，不阻塞响应）
-      const profilePromise = createUserProfile(data.user.id, {
-        username: generatedUsername,
-        email: normalizedEmail,
-      }).catch((err) => {
-        console.error("创建用户资料失败:", err);
-        return null;
-      });
-
-      // 注册成功后自动登录
-      const { data: sessionData, error: signInError } = await supabaseClient.auth.signInWithPassword({
-        email: normalizedEmail,
-        password,
-      });
-
-      // 等待资料创建完成
-      await profilePromise;
-
-      // 如果自动登录失败，返回成功但标记需要重新登录
-      if (signInError || !sessionData.session) {
-        console.error("自动登录失败:", signInError);
-        return res.status(200).send(
-          success(
-            {
-              id: data.user?.id,
-              email: data.user?.email,
-              username: generatedUsername,
-              created_at: data.user?.created_at,
-              need_relogin: true,
-            },
-            "注册成功，请登录"
-          )
-        );
-      }
-
-      // 注册会话
-      const sessionId = sessionData.session.session_id || sessionData.session.access_token;
-      registerSession(data.user!.id, sessionId, req);
 
       // 返回用户信息和 Token
       return res.status(200).send(
         success(
           {
-            id: data.user?.id,
-            email: data.user?.email,
-            username: generatedUsername,
-            created_at: data.user?.created_at,
-            token: `Bearer ${sessionData.session.access_token}`,
-            refresh_token: sessionData.session.refresh_token,
-            expires_at: sessionData.session.expires_at,
-            session_id: sessionData.session.session_id,
-            user: {
-              id: data.user?.id,
-              email: data.user?.email,
-              username: generatedUsername,
-            },
+            id: result.user?.id,
+            email: result.user?.email,
+            username: result.user?.username,
+            created_at: result.user?.created_at,
+            token: result.token,
+            refresh_token: result.refresh_token,
           },
           "注册成功"
         )
       );
     } catch (err: any) {
       console.error("注册失败:", err);
-      
-      // 检查频率限制
-      if (err.message?.includes("rate limit") ||
-          err.message?.includes("too many")) {
-        return res.status(429).send(error(REGISTER_ERROR_MESSAGES.rateLimit));
+      return res.status(500).send(error("服务器错误，请稍后重试"));
+    }
+  }
+);
+
+/**
+ * POST /api/auth/login
+ * 用户登录（Neon Auth 版本）
+ * 
+ * @body { email: string, password: string }
+ */
+router.post(
+  "/login",
+  rateLimit("login"),
+  validateFields({
+    email: z.string().email("无效的邮箱格式"),
+    password: z.string().min(1, "请输入密码"),
+  }),
+  async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+      const result = await loginUser(email, password);
+
+      if (!result.success) {
+        // 隐藏具体错误，防止枚举攻击
+        return res.status(401).send(error("邮箱或密码错误"));
       }
-      
+
+      // 返回用户信息和 Token
+      return res.status(200).send(
+        success(
+          {
+            token: result.token,
+            refresh_token: result.refresh_token,
+            expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour
+            user: {
+              id: result.user?.id,
+              email: result.user?.email,
+              username: result.user?.username,
+            },
+          },
+          "登录成功"
+        )
+      );
+    } catch (err: any) {
+      console.error("登录失败:", err);
       return res.status(500).send(error("服务器错误，请稍后重试"));
     }
   }
