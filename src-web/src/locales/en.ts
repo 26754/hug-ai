@@ -1,0 +1,78 @@
+export default {
+  common: {
+    confirm: "Confirm",
+    cancel: "Cancel",
+    save: "Save",
+    delete: "Delete",
+    edit: "Edit",
+    add: "Add",
+    search: "Search",
+    loading: "Loading...",
+    success: "Success",
+    error: "Error",
+    warning: "Warning",
+    info: "Info",
+    close: "Close",
+    refresh: "Refresh",
+    export: "Export",
+    import: "Import",
+  },
+  settings: {
+    title: "Settings",
+    language: {
+      title: "Language",
+      desc: "Select your preferred interface language",
+    },
+    ui: {
+      title: "Interface",
+      theme: "Theme",
+      darkMode: "Dark Mode",
+      lightMode: "Light Mode",
+      autoMode: "Auto",
+      fontSize: "Font Size",
+      primaryColor: "Primary Color",
+    },
+    db: {
+      title: "Database",
+      dbInfo: "Database Info",
+      dbInfoDesc: "View current database information",
+      viewInfo: "View Info",
+      exportDb: "Export Database",
+      exportDbDesc: "Export database as backup file",
+      export: "Export",
+      importDb: "Import Database",
+      importDbDesc: "Restore database from backup file",
+      import: "Import",
+    },
+    vendor: {
+      title: "Vendor Config",
+      desc: "Manage AI service vendors and API keys",
+    },
+  },
+  workbench: {
+    title: "Workbench",
+    assets: {
+      title: "Assets",
+      addPrefix: "Add",
+      batchGenerate: "Batch Generate",
+      generatePrompt: "Generate Prompt",
+      generateImage: "Generate Image",
+    },
+    production: {
+      title: "Production",
+      node: {
+        storyboardTable: {
+          title: "Storyboard Table",
+          editDialog: "Edit Storyboard",
+        },
+        poster: {
+          title: "Poster",
+          coverCount: "{count} covers",
+        },
+      },
+      edit: "Edit",
+      save: "Save",
+      cancel: "Cancel",
+    },
+  },
+};

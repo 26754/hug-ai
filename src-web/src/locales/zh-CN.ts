@@ -1,0 +1,78 @@
+export default {
+  common: {
+    confirm: "确认",
+    cancel: "取消",
+    save: "保存",
+    delete: "删除",
+    edit: "编辑",
+    add: "添加",
+    search: "搜索",
+    loading: "加载中...",
+    success: "操作成功",
+    error: "操作失败",
+    warning: "警告",
+    info: "提示",
+    close: "关闭",
+    refresh: "刷新",
+    export: "导出",
+    import: "导入",
+  },
+  settings: {
+    title: "系统设置",
+    language: {
+      title: "语言设置",
+      desc: "选择您偏好的界面语言",
+    },
+    ui: {
+      title: "界面配置",
+      theme: "主题设置",
+      darkMode: "深色模式",
+      lightMode: "浅色模式",
+      autoMode: "跟随系统",
+      fontSize: "字体大小",
+      primaryColor: "主题色",
+    },
+    db: {
+      title: "数据库",
+      dbInfo: "数据库信息",
+      dbInfoDesc: "查看当前数据库的基本信息",
+      viewInfo: "查看信息",
+      exportDb: "导出数据库",
+      exportDbDesc: "将数据库导出为备份文件",
+      export: "导出",
+      importDb: "导入数据库",
+      importDbDesc: "从备份文件恢复数据库",
+      import: "导入",
+    },
+    vendor: {
+      title: "供应商配置",
+      desc: "管理 AI 服务供应商和 API Key",
+    },
+  },
+  workbench: {
+    title: "工作台",
+    assets: {
+      title: "素材库",
+      addPrefix: "添加",
+      batchGenerate: "批量生成",
+      generatePrompt: "生成提示词",
+      generateImage: "生成图片",
+    },
+    production: {
+      title: "生产制作",
+      node: {
+        storyboardTable: {
+          title: "分镜表格",
+          editDialog: "编辑分镜",
+        },
+        poster: {
+          title: "海报",
+          coverCount: "{count} 张封面",
+        },
+      },
+      edit: "编辑",
+      save: "保存",
+      cancel: "取消",
+    },
+  },
+};

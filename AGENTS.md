@@ -3,7 +3,7 @@
 ## 项目概览
 
 - **名称**: HUG AI
-- **版本**: 1.1.5
+- **版本**: 1.1.6
 - **描述**: AI 短剧漫剧工具，能够利用 AI 技术将小说自动转化为剧本，并结合 AI 生成的图片和视频，实现高效的短剧创作
 - **作者**: HBAI-Ltd <ltlctools@outlook.com>
 - **许可证**: Apache-2.0
@@ -11,16 +11,42 @@
 
 ## 技术栈
 
+### 后端
 - **运行时**: Node.js 24+
 - **语言**: TypeScript / JavaScript
-- **后端**: Express.js + Vue.js 3
-- **前端**: Vue 3 + Vite + Pinia + Vue Router
+- **框架**: Express.js
 - **数据库**: SQLite (better-sqlite3) + Neon (Serverless PostgreSQL)
 - **认证**: Neon Auth (自实现 JWT)
 - **AI SDK**: @ai-sdk (支持 Anthropic, DeepSeek, Google, OpenAI, XAI 等)
-- **打包**: esbuild, Vite
-- **包管理器**: pnpm
-- **认证**: Neon Auth (JWT Token)
+
+### 前端
+- **框架**: Vue 3 + Vite
+- **UI组件**: TDesign Vue Next
+- **状态管理**: Pinia
+- **路由**: Vue Router
+- **多语言**: Vue I18n
+- **HTTP**: Axios
+- **工具库**: VueUse, Day.js
+
+## 新增功能 (v1.1.6)
+
+### 第一优先级 ✅
+- [x] TDesign UI 组件库迁移
+- [x] 多语言支持 (中文/英文/日文/韩文)
+- [x] 暗色主题配置
+- [x] 主题色自定义
+- [x] 字体大小调整
+
+### 第二优先级 ✅
+- [x] 数据库配置页面
+- [x] 数据库导入/导出
+- [x] 供应商配置 UI
+
+### 第三优先级 ✅
+- [x] 技能扫描 UI
+- [x] 海报生成节点
+- [x] 视频轨道编辑增强
+- [x] 音频素材管理
 
 ## 目录结构
 

@@ -20,6 +20,18 @@
   --radius-lg: 16px;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+
+  /* TDesign 主题变量 */
+  --td-brand-color: #6366f1;
+  --td-brand-color-hover: #4f46e5;
+  --td-brand-color-light: rgba(99, 102, 241, 0.1);
+  --td-bg-color-container: #1e293b;
+  --td-bg-color-container-hover: #334155;
+  --td-bg-color-container-active: #475569;
+  --td-border-level-1-color: #334155;
+  --td-text-color-primary: #f8fafc;
+  --td-text-color-secondary: #94a3b8;
+  --td-text-color-disabled: #64748b;
 }
 
 * {
