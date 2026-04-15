@@ -30,16 +30,13 @@ pnpm install
 pnpm build
 cd "$PROJECT_DIR"
 
-# 4. 构建后端 (使用 esbuild 直接构建)
+# 4. 构建后端 (使用 tsx 脚本)
 echo ""
 echo "[4/5] 构建后端..."
 mkdir -p data/serve
-npx esbuild src/app.ts --bundle --platform=node --outfile=data/serve/app.js \
-  --alias:@=./src \
-  --external:better-sqlite3 --external:sharp --external:mysql --external:mysql2 \
-  --external:pg --external:oracledb --external:tedious --external:mssql \
-  --external:sqlite3 --external:electron --external:@huggingface/transformers \
-  --external:onnxruntime-web --external:vm2
+NODE_PATH="$PROJECT_DIR/node_modules/.pnpm/node_modules" \
+  node node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.cjs scripts/build.ts
+cp build/app.js data/serve/app.js
 echo "后端构建完成"
 
 # 5. 准备产物
