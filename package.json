@@ -51,6 +51,7 @@
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.8.0",
+    "busboy": "^1.6.0",
     "compressing": "^2.1.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

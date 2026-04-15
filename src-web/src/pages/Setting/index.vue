@@ -32,6 +32,12 @@
             </template>
             {{ $t("settings.vendor.title") }}
           </t-menu-item>
+          <t-menu-item value="modelMap">
+            <template #icon>
+              <t-icon name="layers" />
+            </template>
+            {{ $t("settings.modelMap.title") }}
+          </t-menu-item>
         </t-menu>
       </t-aside>
 
@@ -57,6 +63,7 @@ import LanguageConfig from "./components/LanguageConfig.vue";
 import UIConfig from "./components/UIConfig.vue";
 import DBConfig from "./components/DBConfig.vue";
 import VendorConfig from "./components/VendorConfig.vue";
+import ModelMap from "./components/ModelMap.vue";
 
 const { t } = useI18n();
 
@@ -67,6 +74,7 @@ const menuTitleMap: Record<string, string> = {
   ui: "settings.ui.title",
   database: "settings.db.title",
   vendor: "settings.vendor.title",
+  modelMap: "settings.modelMap.title",
 };
 
 const currentTitle = computed(() => t(menuTitleMap[activeMenu.value] || "settings.title"));
@@ -76,6 +84,7 @@ const componentMap: Record<string, any> = {
   ui: UIConfig,
   database: DBConfig,
   vendor: VendorConfig,
+  modelMap: ModelMap,
 };
 
 const currentComponent = computed(() => componentMap[activeMenu.value] || null);
