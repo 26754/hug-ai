@@ -12,6 +12,50 @@ const filterProject = ref('all')
 const selectedScript = ref(null)
 const showPreviewModal = ref(false)
 
+// 卡片折叠状态 - 使用 Set 存储展开的卡片 ID
+const expandedCards = ref(new Set())
+const hoveredCard = ref(null)
+
+// 切换卡片展开/折叠
+function toggleCard(scriptId, event) {
+  event?.stopPropagation()
+  if (expandedCards.value.has(scriptId)) {
+    expandedCards.value.delete(scriptId)
+  } else {
+    expandedCards.value.add(scriptId)
+  }
+  // 触发响应式更新
+  expandedCards.value = new Set(expandedCards.value)
+}
+
+// 检查卡片是否展开
+function isCardExpanded(scriptId) {
+  return expandedCards.value.has(scriptId)
+}
+
+// 折叠所有卡片
+function collapseAll() {
+  expandedCards.value.clear()
+  expandedCards.value = new Set()
+}
+
+// 展开所有卡片
+function expandAll() {
+  filteredScripts.value.forEach(script => {
+    expandedCards.value.add(script.id)
+  })
+  expandedCards.value = new Set(expandedCards.value)
+}
+
+// 展开状态计算属性
+const expandStatus = computed(() => {
+  const total = filteredScripts.value.length
+  const expanded = expandedCards.value.size
+  if (expanded === 0) return 'none'
+  if (expanded === total) return 'all'
+  return 'partial'
+})
+
 // 模拟剧本数据
 const scripts = ref([
   { 
@@ -226,6 +270,34 @@ function formatDuration(duration) {
             </option>
           </select>
         </div>
+
+        <!-- 展开/折叠控制 -->
+        <div class="expand-controls">
+          <button 
+            class="expand-btn" 
+            @click="expandAll"
+            :disabled="expandStatus === 'all'"
+            title="展开全部"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="7 13 12 18 17 13"/>
+              <polyline points="7 6 12 11 17 6"/>
+            </svg>
+            展开全部
+          </button>
+          <button 
+            class="expand-btn" 
+            @click="collapseAll"
+            :disabled="expandStatus === 'none'"
+            title="折叠全部"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="17 11 12 6 7 11"/>
+              <polyline points="17 18 12 13 7 18"/>
+            </svg>
+            折叠全部
+          </button>
+        </div>
       </div>
 
       <!-- Scripts List -->
@@ -234,8 +306,30 @@ function formatDuration(duration) {
           v-for="script in filteredScripts" 
           :key="script.id" 
           class="script-card"
-          @click="previewScript(script)"
+          :class="{ 
+            'is-expanded': isCardExpanded(script.id),
+            'is-hovered': hoveredCard === script.id 
+          }"
+          @mouseenter="hoveredCard = script.id"
+          @mouseleave="hoveredCard = null"
         >
+          <!-- 折叠/展开按钮 -->
+          <button 
+            class="collapse-btn"
+            @click="toggleCard(script.id, $event)"
+            :title="isCardExpanded(script.id) ? '折叠' : '展开'"
+          >
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              stroke-width="2"
+              :class="{ 'rotate': isCardExpanded(script.id) }"
+            >
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          
           <div class="script-number">
             <span class="episode">第{{ script.episode }}集</span>
           </div>
@@ -274,9 +368,87 @@ function formatDuration(duration) {
                 <span>{{ script.characters.slice(0, 2).join('、') }}<template v-if="script.characters.length > 2">等</template></span>
               </div>
             </div>
+
+            <!-- 展开后的详细内容 -->
+            <Transition name="expand">
+              <div v-if="isCardExpanded(script.id)" class="script-expanded">
+                <div class="expanded-divider"></div>
+                
+                <!-- 出场人物 -->
+                <div class="expanded-section">
+                  <div class="section-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span>出场人物</span>
+                  </div>
+                  <div class="character-tags">
+                    <span v-for="char in script.characters" :key="char" class="character-tag">
+                      {{ char }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- 场景预览 -->
+                <div class="expanded-section">
+                  <div class="section-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                      <line x1="7" y1="2" x2="7" y2="22"/>
+                      <line x1="17" y1="2" x2="17" y2="22"/>
+                      <line x1="2" y1="12" x2="22" y2="12"/>
+                      <line x1="2" y1="7" x2="7" y2="7"/>
+                      <line x1="2" y1="17" x2="7" y2="17"/>
+                      <line x1="17" y1="17" x2="22" y2="17"/>
+                      <line x1="17" y1="7" x2="22" y2="7"/>
+                    </svg>
+                    <span>场景列表 ({{ script.scenes }} 个)</span>
+                  </div>
+                  <div class="scenes-grid">
+                    <div v-for="i in Math.min(script.scenes, 6)" :key="i" class="scene-mini-card">
+                      <span class="scene-mini-number">{{ i }}</span>
+                      <span class="scene-mini-type">场景类型</span>
+                    </div>
+                    <div v-if="script.scenes > 6" class="scene-mini-card more">
+                      +{{ script.scenes - 6 }} 个
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="expanded-actions">
+                  <button class="action-btn" @click.stop="router.push('/storyboard')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="3" y1="9" x2="21" y2="9"/>
+                      <line x1="9" y1="21" x2="9" y2="9"/>
+                    </svg>
+                    分镜设计
+                  </button>
+                  <button class="action-btn" @click.stop="router.push('/images')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    生成图片
+                  </button>
+                  <button class="action-btn primary" @click.stop="previewScript(script)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    查看详情
+                  </button>
+                </div>
+              </div>
+            </Transition>
           </div>
           
-          <div class="script-actions">
+          <div class="script-actions" v-if="!isCardExpanded(script.id)">
             <button class="action-btn" @click.stop="router.push('/storyboard')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -587,11 +759,58 @@ function formatDuration(duration) {
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s;
+  position: relative;
 }
 
 .script-card:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(99, 102, 241, 0.3);
+}
+
+.script-card.is-expanded {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+/* 折叠按钮 */
+.collapse-btn {
+  position: absolute;
+  left: -1px;
+  top: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  width: 28px;
+  height: 28px;
+  background: #6366f1;
+  border: 2px solid #0a0a0f;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.script-card:hover .collapse-btn,
+.script-card.is-expanded .collapse-btn {
+  opacity: 1;
+}
+
+.collapse-btn:hover {
+  background: #818cf8;
+  transform: translateY(-50%) translateX(-50%) scale(1.1);
+}
+
+.collapse-btn svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.3s ease;
+}
+
+.collapse-btn svg.rotate {
+  transform: rotate(-90deg);
 }
 
 .script-number {
@@ -1007,5 +1226,187 @@ function formatDuration(duration) {
 .btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+}
+
+/* 展开控制按钮 */
+.expand-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.expand-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.expand-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #fff;
+}
+
+.expand-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.expand-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 展开内容区域 */
+.script-expanded {
+  margin-top: 16px;
+}
+
+.expanded-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+  margin-bottom: 16px;
+}
+
+.expanded-section {
+  margin-bottom: 16px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.section-header svg {
+  width: 16px;
+  height: 16px;
+  color: #6366f1;
+}
+
+/* 角色标签 */
+.character-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.character-tag {
+  padding: 4px 12px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 20px;
+  font-size: 12px;
+  color: #a5b4fc;
+}
+
+/* 场景网格 */
+.scenes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.scene-mini-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.scene-mini-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.scene-mini-card.more {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+.scene-mini-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: #6366f1;
+}
+
+.scene-mini-type {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* 展开后的操作按钮 */
+.expanded-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.expanded-actions .action-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.expanded-actions .action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 展开过渡动画 */
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  opacity: 1;
+  max-height: 500px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .expand-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .expand-btn {
+    justify-content: center;
+  }
+  
+  .scenes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .expanded-actions {
+    flex-direction: column;
+  }
 }
 </style>
