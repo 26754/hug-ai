@@ -86,6 +86,11 @@ export default async function startServe(randomPort: Boolean = false) {
       req.path === path || req.path.startsWith(path + "/") || req.path.startsWith(path)
     );
     
+    // 非 API 路径跳过认证
+    if (!req.path.startsWith("/api/")) {
+      return next();
+    }
+    
     if (isWhiteListed) {
       return next();
     }
@@ -123,9 +128,30 @@ export default async function startServe(randomPort: Boolean = false) {
   const router = await import("@/router");
   await router.default(app);
 
+  // SPA 回退 - 所有非 API 请求都返回 index.html
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // API 请求跳过
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    // 静态资源（带扩展名）跳过
+    if (req.path.includes('.') && !req.path.endsWith('.html')) {
+      return next();
+    }
+    
+    // 返回 SPA 入口
+    const webDir = u.getPath("web");
+    res.sendFile(webDir + '/index.html');
+  });
+
   // 404 处理
-  app.use((_, res, next: NextFunction) => {
-    return res.status(404).send({ message: "API 404 Not Found" });
+  app.use((req: Request, res: Response) => {
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).send({ message: "API 404 Not Found" });
+    }
+    const webDir = u.getPath("web");
+    res.sendFile(webDir + '/index.html');
   });
 
   // 错误处理

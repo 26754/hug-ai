@@ -3,7 +3,7 @@
 ## 项目概览
 
 - **名称**: Toonflow
-- **版本**: 1.1.4
+- **版本**: 1.1.5
 - **描述**: AI 短剧漫剧工具，能够利用 AI 技术将小说自动转化为剧本，并结合 AI 生成的图片和视频，实现高效的短剧创作
 - **作者**: HBAI-Ltd <ltlctools@outlook.com>
 - **许可证**: Apache-2.0
@@ -51,6 +51,7 @@
 │   └── build.ts           # 项目打包配置
 ├── data/                  # 数据目录
 │   ├── db2.sqlite        # SQLite 数据库
+│   ├── web/               # 前端静态文件
 │   ├── oss/               # 对象存储
 │   ├── skills/            # 技能数据
 │   └── assets/            # 资源文件
@@ -142,15 +143,14 @@ node data/serve/app.js
 | `/api/auth/me` | GET | 获取当前用户信息 | 是 |
 | `/api/auth/logout` | POST | 退出登录 | 是 |
 
-### 认证中间件
+### 前端页面
 
-认证中间件位于 `src/app.ts`，白名单路径：
-- `/api/auth/register`
-- `/api/auth/register/login`
-- `/api/auth/login`
-- `/api/login/login/refresh`
-- `/api/login/refresh`
-- `/api/other/getVersion`
+| 页面 | 路径 | 说明 |
+|------|------|------|
+| 首页 | `/` | 跳转到登录或首页 |
+| 登录 | `/login` | 用户登录 |
+| 注册 | `/register` | 用户注册 |
+| 首页 | `/home` | 登录后首页（需认证） |
 
 ### 安全功能
 
@@ -213,6 +213,7 @@ interface JWTPayload {
 3. **Token 认证**: 除登录接口外，所有 API 需要有效的 Bearer Token
 4. **数据库**: SQLite 数据库文件位于 `data/db2.sqlite`
 5. **Neon**: 用户认证支持 Neon PostgreSQL，需配置 `NEON_CONNECTION_STRING`
+6. **SPA 路由**: 前端使用 Vue Router History 模式，服务器配置了 SPA 回退
 
 ## 部署说明
 
@@ -229,6 +230,14 @@ npx -y node-gyp@10.1.0 rebuild --release
 ```
 
 `.coze` 文件已配置自动编译步骤。
+
+### Neon 数据库连接
+
+生产环境需要配置 Neon 数据库连接字符串：
+
+```bash
+export NEON_CONNECTION_STRING='postgresql://user:password@host/neondb?sslmode=require'
+```
 
 ## 常见问题
 
