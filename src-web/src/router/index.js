@@ -79,6 +79,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/workbench/:projectId?/:scriptId?',
+    name: 'Workbench',
+    component: () => import('@/pages/Workbench.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

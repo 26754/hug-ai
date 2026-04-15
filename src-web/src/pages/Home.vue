@@ -31,6 +31,15 @@ const greeting = computed(() => {
 // 功能模块数据
 const featureModules = computed(() => [
   {
+    id: 'workbench',
+    name: '无限画布',
+    desc: '可视化生产工作台',
+    icon: 'canvas',
+    color: '#a855f7',
+    path: '/workbench',
+    count: 1
+  },
+  {
     id: 'novels',
     name: '小说管理',
     desc: '导入和管理小说文本',
@@ -368,6 +377,14 @@ function getStatusClass(status) {
                   <svg v-else-if="module.icon === 'video'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="23 7 16 12 23 17 23 7"/>
                     <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  </svg>
+                  <!-- Canvas Icon -->
+                  <svg v-else-if="module.icon === 'canvas'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="3" y1="15" x2="21" y2="15"/>
+                    <line x1="9" y1="3" x2="9" y2="21"/>
+                    <line x1="15" y1="3" x2="15" y2="21"/>
                   </svg>
                 </div>
                 <div class="module-info">
