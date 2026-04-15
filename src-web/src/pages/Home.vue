@@ -55,7 +55,7 @@ function toggleProfileMenu() {
   <div class="home-container">
     <header class="header">
       <div class="header-content">
-        <h1 class="logo">Toonflow</h1>
+        <h1 class="logo">HUG AI</h1>
         <div class="user-menu">
           <button class="profile-btn" @click="toggleProfileMenu">
             <span class="avatar">{{ authStore.user?.username?.[0]?.toUpperCase() || authStore.user?.email?.[0]?.toUpperCase() || 'U' }}</span>
@@ -129,7 +129,7 @@ function toggleProfileMenu() {
     </main>
     
     <footer class="footer">
-      <p>© 2024 Toonflow. 利用 AI 技术赋能短剧创作。</p>
+      <p>© 2024 HUG AI. 利用 AI 技术赋能短剧创作。</p>
     </footer>
   </div>
 </template>

@@ -68,7 +68,7 @@ function goToRegister() {
               <path d="M2 12l10 5 10-5"/>
             </svg>
           </div>
-          <h1 class="brand-name">Toonflow</h1>
+          <h1 class="brand-name">HUG AI</h1>
           <p class="brand-tagline">AI 短剧漫剧创作平台</p>
         </div>
 

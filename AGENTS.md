@@ -1,13 +1,13 @@
-# Toonflow AI 短剧漫剧工具
+# HUG AI AI 短剧漫剧工具
 
 ## 项目概览
 
-- **名称**: Toonflow
+- **名称**: HUG AI
 - **版本**: 1.1.5
 - **描述**: AI 短剧漫剧工具，能够利用 AI 技术将小说自动转化为剧本，并结合 AI 生成的图片和视频，实现高效的短剧创作
 - **作者**: HBAI-Ltd <ltlctools@outlook.com>
 - **许可证**: Apache-2.0
-- **仓库**: https://github.com/HBAI-Ltd/Toonflow-app
+- **仓库**: https://github.com/HBAI-Ltd/HUG AI-app
 
 ## 技术栈
 

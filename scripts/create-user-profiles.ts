@@ -179,7 +179,7 @@ async function insertTestProfile() {
       id: userId,
       username: username,
       display_name: username,
-      bio: "Toonflow 用户",
+      bio: "HUG AI 用户",
     }),
   });
 

@@ -1,13 +1,13 @@
 <p>
-  <a href="https://github.com/HBAI-Ltd/Toonflow-app">
+  <a href="https://github.com/HBAI-Ltd/HUG AI-app">
     <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub" />
   </a>
   &nbsp;|&nbsp;
-  <a href="https://gitee.com/HBAI-Ltd/Toonflow-app">
+  <a href="https://gitee.com/HBAI-Ltd/HUG AI-app">
     <img src="https://img.shields.io/badge/Gitee-C71D23?style=flat-square&logo=gitee&logoColor=white" alt="Gitee" />
   </a>
   &nbsp;|&nbsp;
-  <a href="https://gitcode.com/HBAI-Ltd/Toonflow-app">
+  <a href="https://gitcode.com/HBAI-Ltd/HUG AI-app">
     <img src="./docs/atomgitLogo.svg" alt="Atomgit" style="height:20px"/>
   </a>
 </p>
@@ -24,9 +24,9 @@
 
 <div align="center">
 
-<img src="./docs/logo.png" alt="Toonflow Logo" height="120"/>
+<img src="./docs/logo.png" alt="HUG AI Logo" height="120"/>
 
-# Toonflow
+# HUG AI
 
   <p align="center">
     <b>
@@ -38,14 +38,14 @@
     </b>
   </p>
   <p align="center">
-    <a href="https://github.com/HBAI-Ltd/Toonflow-app/stargazers">
-      <img src="https://img.shields.io/github/stars/HBAI-Ltd/Toonflow-app?style=for-the-badge&logo=github" alt="Stars Badge" />
+    <a href="https://github.com/HBAI-Ltd/HUG AI-app/stargazers">
+      <img src="https://img.shields.io/github/stars/HBAI-Ltd/HUG AI-app?style=for-the-badge&logo=github" alt="Stars Badge" />
     </a>
     <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">
       <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge" alt="Apache-2.0 License Badge" />
     </a>
-    <a href="https://github.com/HBAI-Ltd/Toonflow-app/releases">
-      <img alt="release" src="https://img.shields.io/github/v/release/HBAI-Ltd/Toonflow-app?style=for-the-badge" />
+    <a href="https://github.com/HBAI-Ltd/HUG AI-app/releases">
+      <img alt="release" src="https://img.shields.io/github/v/release/HBAI-Ltd/HUG AI-app?style=for-the-badge" />
     </a>
   </p>
   
@@ -56,7 +56,7 @@
 
 # 🌐 多语言支持
 
-Toonflow 支持以下语言界面：
+HUG AI 支持以下语言界面：
 
 | 语言       | Language              |
 | ---------- | --------------------- |
@@ -74,7 +74,7 @@ Toonflow 支持以下语言界面：
 
 # 🌟 主要功能
 
-Toonflow 是面向短剧生产的 AI 工作台，围绕“策划 → 编剧 → 分镜 → 出片”构建完整闭环，并支持本地化、可编程、可持续迭代的生产流程。
+HUG AI 是面向短剧生产的 AI 工作台，围绕“策划 → 编剧 → 分镜 → 出片”构建完整闭环，并支持本地化、可编程、可持续迭代的生产流程。
 
 - ✅ **无限画布生产工作台**  
   以类无限画布形式组织剧本、角色、分镜、素材与视频节点，支持自由编排、回溯与并行生产，不受线性步骤限制。
@@ -115,9 +115,9 @@ Toonflow 是面向短剧生产的 AI 工作台，围绕“策划 → 编剧 → 
 ## 📺 视频教程
 
 https://www.bilibili.com/video/BV1na6wB6Ea2
-[![Toonflow 8 分钟快速上手 AI 视频](./docs/videoCover.png)](https://www.bilibili.com/video/BV1oXD7BqEqJ)
+[![HUG AI 8 分钟快速上手 AI 视频](./docs/videoCover.png)](https://www.bilibili.com/video/BV1oXD7BqEqJ)
 
-**Toonflow 8 分钟快速上手 AI 视频**
+**HUG AI 8 分钟快速上手 AI 视频**
 👉 [点击观看](https://www.bilibili.com/video/BV1oXD7BqEqJ)
 
 📱 手机微信扫码观看
@@ -142,9 +142,9 @@ https://www.bilibili.com/video/BV1na6wB6Ea2
 
 | 操作系统 | GitHub                                                       | Atomgit                                                       | 夸克网盘下载                                    | 说明           |
 | :------: | :----------------------------------------------------------- | :------------------------------------------------------------ | :---------------------------------------------- | :------------- |
-| Windows  | [Release](https://github.com/HBAI-Ltd/Toonflow-app/releases) | [Release](https://gitcode.com/HBAI-Ltd/Toonflow-app/releases) | [夸克网盘](https://pan.quark.cn/s/94ef07509df0) | 官方发布安装包 |
-|  Linux   | [Release](https://github.com/HBAI-Ltd/Toonflow-app/releases) | [Release](https://gitcode.com/HBAI-Ltd/Toonflow-app/releases) | [夸克网盘](https://pan.quark.cn/s/94ef07509df0) | 官方发布安装包 |
-|  macOS   | [Release](https://github.com/HBAI-Ltd/Toonflow-app/releases) | [Release](https://gitcode.com/HBAI-Ltd/Toonflow-app/releases) | [夸克网盘](https://pan.quark.cn/s/94ef07509df0) | 官方发布安装包 |
+| Windows  | [Release](https://github.com/HBAI-Ltd/HUG AI-app/releases) | [Release](https://gitcode.com/HBAI-Ltd/HUG AI-app/releases) | [夸克网盘](https://pan.quark.cn/s/94ef07509df0) | 官方发布安装包 |
+|  Linux   | [Release](https://github.com/HBAI-Ltd/HUG AI-app/releases) | [Release](https://gitcode.com/HBAI-Ltd/HUG AI-app/releases) | [夸克网盘](https://pan.quark.cn/s/94ef07509df0) | 官方发布安装包 |
+|  macOS   | [Release](https://github.com/HBAI-Ltd/HUG AI-app/releases) | [Release](https://gitcode.com/HBAI-Ltd/HUG AI-app/releases) | [夸克网盘](https://pan.quark.cn/s/94ef07509df0) | 官方发布安装包 |
 
 > [!CAUTION]
 > MacOS 系统请到 设置-隐私与安全性 配置安全性否则可能因证书问题无法正常打开
@@ -177,8 +177,8 @@ https://www.bilibili.com/video/BV1na6wB6Ea2
 
 ```shell
 # 先克隆项目（如已有则跳过）
-git clone https://github.com/HBAI-Ltd/Toonflow-app.git
-cd Toonflow-app
+git clone https://github.com/HBAI-Ltd/HUG AI-app.git
+cd HUG AI-app
 
 # 使用 docker-compose 本地构建并启动
 yarn docker:local
@@ -234,8 +234,8 @@ npm install -g yarn pm2
 
 ```bash
 cd /opt
-git clone https://github.com/HBAI-Ltd/Toonflow-app.git
-cd Toonflow-app
+git clone https://github.com/HBAI-Ltd/HUG AI-app.git
+cd HUG AI-app
 yarn install
 yarn build
 ```
@@ -244,8 +244,8 @@ yarn build
 
 ```bash
 cd /opt
-git clone https://gitee.com/HBAI-Ltd/Toonflow-app.git
-cd Toonflow-app
+git clone https://gitee.com/HBAI-Ltd/HUG AI-app.git
+cd HUG AI-app
 yarn install
 yarn build
 ```
@@ -303,8 +303,8 @@ pm2 monit             # 监控面板
 
 如需单独部署或定制前端界面，请参考前端仓库：
 
-- **GitHub**：[Toonflow-web](https://github.com/HBAI-Ltd/Toonflow-web)
-- **Gitee**：[Toonflow-web](https://gitee.com/HBAI-Ltd/Toonflow-web)
+- **GitHub**：[HUG AI-web](https://github.com/HBAI-Ltd/HUG AI-web)
+- **Gitee**：[HUG AI-web](https://gitee.com/HBAI-Ltd/HUG AI-web)
 
 > 💡 **说明**：本仓库已内置编译好的前端资源，普通用户无需单独部署前端。前端仓库仅供需要二次开发的开发者使用。
 
@@ -317,7 +317,7 @@ pm2 monit             # 监控面板
 >
 > ⛔ `master` 分支不接受任何 PR ｜ ✅ 请将 PR 提交到 `develop` 分支
 >
-> 欢迎开发者们共同参与 Toonflow 的共创。如有兴趣加入，请在交流群内联系主理人 ACT
+> 欢迎开发者们共同参与 HUG AI 的共创。如有兴趣加入，请在交流群内联系主理人 ACT
 
 ## 🛠️ 技术栈
 
@@ -346,15 +346,15 @@ pm2 monit             # 监控面板
    **从 GitHub 克隆：**
 
    ```bash
-   git clone https://github.com/HBAI-Ltd/Toonflow-app.git
-   cd Toonflow-app
+   git clone https://github.com/HBAI-Ltd/HUG AI-app.git
+   cd HUG AI-app
    ```
 
    **从 Gitee 克隆（国内推荐）：**
 
    ```bash
-   git clone https://gitee.com/HBAI-Ltd/Toonflow-app.git
-   cd Toonflow-app
+   git clone https://gitee.com/HBAI-Ltd/HUG AI-app.git
+   cd HUG AI-app
    ```
 
 2. **安装依赖**
@@ -439,8 +439,8 @@ pm2 monit             # 监控面板
 
 如需修改前端界面，请前往前端仓库进行开发：
 
-- **GitHub**：[Toonflow-web](https://github.com/HBAI-Ltd/Toonflow-web)
-- **Gitee**：[Toonflow-web](https://gitee.com/HBAI-Ltd/Toonflow-web)
+- **GitHub**：[HUG AI-web](https://github.com/HBAI-Ltd/HUG AI-web)
+- **Gitee**：[HUG AI-web](https://gitee.com/HBAI-Ltd/HUG AI-web)
 
 前端构建后，将 `dist` 目录内容复制到本项目的 `data/web` 目录即可集成。
 
@@ -507,10 +507,10 @@ pm2 monit             # 监控面板
 
 | 仓库             | 说明                               | GitHub                                             | Gitee                                            |
 | ---------------- | ---------------------------------- | -------------------------------------------------- | ------------------------------------------------ |
-| **Toonflow-app** | 完整客户端（本仓库，推荐普通用户） | [GitHub](https://github.com/HBAI-Ltd/Toonflow-app) | [Gitee](https://gitee.com/HBAI-Ltd/Toonflow-app) |
-| **Toonflow-web** | 前端源代码（适合前端开发者）       | [GitHub](https://github.com/HBAI-Ltd/Toonflow-web) | [Gitee](https://gitee.com/HBAI-Ltd/Toonflow-web) |
+| **HUG AI-app** | 完整客户端（本仓库，推荐普通用户） | [GitHub](https://github.com/HBAI-Ltd/HUG AI-app) | [Gitee](https://gitee.com/HBAI-Ltd/HUG AI-app) |
+| **HUG AI-web** | 前端源代码（适合前端开发者）       | [GitHub](https://github.com/HBAI-Ltd/HUG AI-web) | [Gitee](https://gitee.com/HBAI-Ltd/HUG AI-web) |
 
-> 💡 **提示**：如果您只是想使用 Toonflow，直接下载本仓库的客户端即可。前端仓库仅供需要二次开发或定制前端界面的开发者使用。
+> 💡 **提示**：如果您只是想使用 HUG AI，直接下载本仓库的客户端即可。前端仓库仅供需要二次开发或定制前端界面的开发者使用。
 
 ---
 
@@ -518,7 +518,7 @@ pm2 monit             # 监控面板
 
 拉群小助手:
 
-<img src="./docs/QR.png" alt="Toonflow QR" height="400"/>
+<img src="./docs/QR.png" alt="HUG AI QR" height="400"/>
 
 也可以点击图标加入 Discord：
 
@@ -530,13 +530,13 @@ pm2 monit             # 监控面板
 
 # 💌 联系我们
 
-📧 邮箱：[ltlctools@outlook.com](mailto:ltlctools@outlook.com?subject=Toonflow咨询)
+📧 邮箱：[ltlctools@outlook.com](mailto:ltlctools@outlook.com?subject=HUG AI咨询)
 
 ---
 
 # 📜 许可证
 
-Toonflow 基于 Apache-2.0 协议开源发布，并附有补充商业协议。
+HUG AI 基于 Apache-2.0 协议开源发布，并附有补充商业协议。
 
 许可证详情：https://www.apache.org/licenses/LICENSE-2.0
 
@@ -544,11 +544,11 @@ Toonflow 基于 Apache-2.0 协议开源发布，并附有补充商业协议。
 
 - 若将本软件以产品形式分发给 **2 个及以上独立第三方**使用，须取得 HBAI-Ltd **书面商业授权**。
 - **≤ 5 个法人**联合运营内部使用，不对外提供服务的，视为内部使用，**无需授权**。
-- 不得删除或修改 Toonflow 中的标识或版权信息。
+- 不得删除或修改 HUG AI 中的标识或版权信息。
 
 ## 永久免费场景
 
-- ✅ 用 Toonflow 制作内容并获得平台分账
+- ✅ 用 HUG AI 制作内容并获得平台分账
 - ✅ 二次开发供自己团队内部使用
 - ✅ ≤ 5 个法人联合运营内部使用
 - ✅ 个人学习、研究、非商业用途
@@ -571,13 +571,13 @@ Toonflow 基于 Apache-2.0 协议开源发布，并附有补充商业协议。
 
 # ⭐️ 星标历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=HBAI-Ltd/Toonflow-app&type=timeline&legend=top-left)](https://www.star-history.com/#HBAI-Ltd/Toonflow-app&type=timeline&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=HBAI-Ltd/HUG AI-app&type=timeline&legend=top-left)](https://www.star-history.com/#HBAI-Ltd/HUG AI-app&type=timeline&legend=top-left)
 
 ---
 
 # 🙏 致谢
 
-感谢以下开源项目为 Toonflow 提供强大支持：
+感谢以下开源项目为 HUG AI 提供强大支持：
 
 - [Express](https://expressjs.com/) - 快速、开放、极简的 Node.js Web 框架
 - [AI SDK](https://ai-sdk.dev/) - 面向 TypeScript 的 AI 工具包
@@ -589,7 +589,7 @@ Toonflow 基于 Apache-2.0 协议开源发布，并附有补充商业协议。
 - [Electron](https://www.electronjs.org/) - 跨平台桌面应用开发框架
 - [Hugging Face Transformers](https://huggingface.co/docs/transformers.js) - 本地 ML 推理库
 
-感谢以下组织/单位/个人为 Toonflow 提供支持：
+感谢以下组织/单位/个人为 HUG AI 提供支持：
 
 <table>
   <tr>
