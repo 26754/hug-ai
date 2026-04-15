@@ -25,6 +25,60 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/projects',
+    name: 'Projects',
+    component: () => import('@/pages/Projects.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/novels',
+    name: 'Novels',
+    component: () => import('@/pages/Novels.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/scripts',
+    name: 'Scripts',
+    component: () => import('@/pages/Scripts.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/characters',
+    name: 'Characters',
+    component: () => import('@/pages/Characters.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/storyboard',
+    name: 'Storyboard',
+    component: () => import('@/pages/Storyboard.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/images',
+    name: 'Images',
+    component: () => import('@/pages/Images.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/videos',
+    name: 'Videos',
+    component: () => import('@/pages/Videos.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('@/pages/Settings.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/pages/Profile.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }
