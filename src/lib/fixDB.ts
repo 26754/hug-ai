@@ -113,12 +113,14 @@ export default async (knex: Knex): Promise<void> => {
   await dropColumn("o_vendorConfig", "inputs");
   await dropColumn("o_vendorConfig", "createTime");
 
-  const volcengineVer = await u.vendor.getVendor("volcengine").version;
-  if (Number(volcengineVer) < 2.1) {
+  const volcengineVendor = await u.vendor.getVendor("volcengine");
+  const volcengineVer = volcengineVendor?.version;
+  if (volcengineVer && Number(volcengineVer) < 2.1) {
     u.vendor.writeCode("volcengine", vendorData["volcengine.ts"]);
   }
-  const minimaxVer = await u.vendor.getVendor("minimax").version;
-  if (Number(minimaxVer) < 2.1) {
+  const minimaxVendor = await u.vendor.getVendor("minimax");
+  const minimaxVer = minimaxVendor?.version;
+  if (minimaxVer && Number(minimaxVer) < 2.1) {
     u.vendor.writeCode("minimax", vendorData["minimax.ts"]);
   }
 };

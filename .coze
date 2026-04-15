@@ -7,9 +7,5 @@ build = ["pnpm", "install"]
 run = ["npx", "tsx", "src/app.ts"]
 
 [deploy]
-build = [
-  "bash",
-  "-c",
-  "PROJDIR=$(pwd) && pnpm install --ignore-scripts && cd node_modules/.pnpm/better-sqlite3@12.9.0/node_modules/better-sqlite3 && npx -y node-gyp@10.1.0 rebuild --release && cd ${PROJDIR}/src-web && pnpm install && pnpm build && cd ${PROJDIR} && NODE_PATH=${PROJDIR}/node_modules/.pnpm/node_modules node ${PROJDIR}/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.cjs scripts/build.ts"
-]
-run = ["npx", "tsx", "src/app.ts"]
+build = ["bash", "scripts/deploy.sh"]
+run = ["node", "data/serve/app.js"]

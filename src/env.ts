@@ -29,11 +29,17 @@ try {
   console.log("[环境变量：.env 文件加载失败]", err);
 }
 
-// 加载环境变量（打包环境默认使用 prod）
+// 加载环境变量（服务器部署默认使用 prod）
 const env = process.env.NODE_ENV;
 if (!env) {
-  if (isElectron) process.env.NODE_ENV = "prod";
-  else process.env.NODE_ENV = "dev";
+  // 非 Electron 环境默认使用 prod（服务器部署场景）
+  if (typeof process.versions?.electron === "undefined") {
+    process.env.NODE_ENV = "prod";
+  } else if (isPackaged) {
+    process.env.NODE_ENV = "prod";
+  } else {
+    process.env.NODE_ENV = "dev";
+  }
   console.log(`[环境变量：${process.env.NODE_ENV}]`);
 }
 
