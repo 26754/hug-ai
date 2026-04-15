@@ -35,6 +35,7 @@ echo ""
 echo "[4/5] 构建后端..."
 mkdir -p data/serve
 npx esbuild src/app.ts --bundle --platform=node --outfile=data/serve/app.js \
+  --alias:@=./src \
   --external:better-sqlite3 --external:sharp --external:mysql --external:mysql2 \
   --external:pg --external:oracledb --external:tedious --external:mssql \
   --external:sqlite3 --external:electron --external:@huggingface/transformers \
