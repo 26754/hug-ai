@@ -3,9 +3,20 @@ requires = ["nodejs-24"]
 entrypoint = "src/app.ts"
 
 [dev]
+# 安装依赖（忽略原生模块编译）
 build = ["pnpm", "install", "--ignore-scripts"]
+# 启动后端服务（端口 5000）
 run = ["bash", "-c", "cd /workspace/projects && export NODE_ENV=prod && node data/serve/app.js"]
 
 [deploy]
-build = ["bash", "-c", "export npm_config_disturl=https://registry.npmmirror.com/mirrors/node && export npm_config_build_from_source=false && cd /workspace/projects && pnpm install --ignore-scripts"]
-run = ["bash", "-c", "cd /workspace/projects && export NODE_ENV=prod && export NEON_CONNECTION_STRING='postgresql://neondb_owner:npg_3IYwH7NSfkAs@ep-wispy-water-a19sv7bc-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require' && node data/serve/app.js"]
+# 部署阶段：按顺序执行
+# 1. 编译 better-sqlite3 原生模块（使用国内镜像）
+# 2. 安装所有依赖
+# 3. 构建前端 Vue 应用 → 输出到 data/web
+# 4. 构建后端服务 → 输出到 data/serve/app.js
+build = [
+  "bash", "-c",
+  "export npm_config_disturl=https://registry.npmmirror.com/mirrors/node && export npm_config_build_from_source=false && cd /workspace/projects && pnpm install --ignore-scripts && cd /workspace/projects/node_modules/.pnpm/better-sqlite3@12.9.0/node_modules/better-sqlite3 && npx -y node-gyp@10.1.0 rebuild --release && cd /workspace/projects && pnpm --filter @hbailight/toonflow-web run build && NODE_PATH=/workspace/projects/node_modules/.pnpm/node_modules node /workspace/projects/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.cjs scripts/build.ts"
+]
+# 启动后端服务（自动托管 data/web 静态文件）
+run = ["bash", "-c", "cd /workspace/projects && export NODE_ENV=prod && node data/serve/app.js"]

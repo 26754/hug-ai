@@ -68,7 +68,8 @@ export default {
       updateSuccess: "Updated successfully",
       deleteSuccess: "Deleted successfully",
     },
-  }, {
+  },
+  workbench: {
     title: "Workbench",
     assets: {
       title: "Assets",
