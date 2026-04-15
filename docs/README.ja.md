@@ -171,8 +171,8 @@ cd Toonflow-app
 yarn docker:local
 
 # または手動でビルド
-docker build -t toonflow .
-docker run -d -p <ローカルポート>:10588 -v <ローカルデータパス>:/app/data toonflow
+docker build -t hugai .
+docker run -d -p <ローカルポート>:10588 -v <ローカルデータパス>:/app/data hugai
 
 # これで指定したポートの /web/index.html にアクセスできます
 # 例: http://localhost:10588/web/index.html
@@ -243,7 +243,7 @@ yarn build
 
 ```json
 {
-  "name": "toonflow-app",
+  "name": "hugai-app",
   "script": "data/serve/app.js",
   "instances": "max",
   "exec_mode": "cluster",
@@ -277,7 +277,7 @@ pm2 save
 
 ```bash
 pm2 list              # プロセス一覧の確認
-pm2 logs toonflow-app # ログの確認
+pm2 logs hugai-app # ログの確認
 pm2 restart all       # サービスの再起動
 pm2 monit             # 監視パネルの表示
 ```

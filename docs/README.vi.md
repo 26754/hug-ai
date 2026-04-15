@@ -166,8 +166,8 @@ cd Toonflow-app
 yarn docker:local
 
 # Hoặc build thủ công
-docker build -t toonflow .
-docker run -d -p <Port trên máy>:10588 -v <Đường dẫn dữ liệu trên máy>:/app/data toonflow
+docker build -t hugai .
+docker run -d -p <Port trên máy>:10588 -v <Đường dẫn dữ liệu trên máy>:/app/data hugai
 
 # Sau đó, truy cập giao diện qua đường dẫn /web/index.html bằng Port đã thiết lập
 # Ví dụ: http://localhost:10588/web/index.html
@@ -238,7 +238,7 @@ Tạo tệp `pm2.json`:
 
 ```json
 {
-  "name": "toonflow-app",
+  "name": "hugai-app",
   "script": "data/serve/app.js",
   "instances": "max",
   "exec_mode": "cluster",
@@ -272,7 +272,7 @@ pm2 save
 
 ```bash
 pm2 list              # Xem danh sách tiến trình
-pm2 logs toonflow-app # Xem log (nhật ký)
+pm2 logs hugai-app # Xem log (nhật ký)
 pm2 restart all       # Khởi động lại dịch vụ
 pm2 monit             # Mở bảng điều khiển giám sát
 ```

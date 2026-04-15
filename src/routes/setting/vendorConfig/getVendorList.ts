@@ -23,6 +23,6 @@ export default router.post("/", async (req, res) => {
     }),
   );
 
-  list.sort((a, b) => (a.id === "toonflow" ? -1 : b.id === "toonflow" ? 1 : 0));
+  list.sort((a, b) => (a.id === "hugai" ? -1 : b.id === "hugai" ? 1 : 0));
   res.status(200).send(success(list));
 });

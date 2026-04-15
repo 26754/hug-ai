@@ -177,8 +177,8 @@ cd Toonflow-app
 yarn docker:local
 
 # Or build manually
-docker build -t toonflow .
-docker run -d -p <Local_Port>:10588 -v <Local_Data_Path>:/app/data toonflow
+docker build -t hugai .
+docker run -d -p <Local_Port>:10588 -v <Local_Data_Path>:/app/data hugai
 
 # You can now access the page at the corresponding port at /web/index.html
 # Example: http://localhost:10588/web/index.html
@@ -249,7 +249,7 @@ Create a `pm2.json` file:
 
 ```json
 {
-  "name": "toonflow-app",
+  "name": "hugai-app",
   "script": "data/serve/app.js",
   "instances": "max",
   "exec_mode": "cluster",
@@ -283,7 +283,7 @@ pm2 save
 
 ```bash
 pm2 list              # View processes
-pm2 logs toonflow-app # View logs
+pm2 logs hugai-app # View logs
 pm2 restart all       # Restart services
 pm2 monit             # Monitoring dashboard
 ```

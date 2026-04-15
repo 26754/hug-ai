@@ -174,8 +174,8 @@ cd Toonflow-app
 yarn docker:local
 
 # หรือทำการ Build แบบแมนนวล
-docker build -t toonflow .
-docker run -d -p <พอร์ตบนเครื่อง>:10588 -v <พาธข้อมูลบนเครื่อง>:/app/data toonflow
+docker build -t hugai .
+docker run -d -p <พอร์ตบนเครื่อง>:10588 -v <พาธข้อมูลบนเครื่อง>:/app/data hugai
 
 # จากนั้นสามารถเข้าถึงหน้าเว็บผ่านพอร์ตที่ระบุ ที่พาธ /web/index.html
 # ตัวอย่าง: http://localhost:10588/web/index.html
@@ -246,7 +246,7 @@ yarn build
 
 ```json
 {
-  "name": "toonflow-app",
+  "name": "hugai-app",
   "script": "data/serve/app.js",
   "instances": "max",
   "exec_mode": "cluster",
@@ -280,7 +280,7 @@ pm2 save
 
 ```bash
 pm2 list              # ดู Process ทั้งหมด
-pm2 logs toonflow-app # ดู Logs
+pm2 logs hugai-app # ดู Logs
 pm2 restart all       # รีสตาร์ทเซอร์วิส
 pm2 monit             # เปิดหน้าต่าง Monitoring
 ```

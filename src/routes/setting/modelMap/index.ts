@@ -24,11 +24,11 @@ function initTable() {
 
   // 添加默认映射
   const defaultMaps = [
-    { vendor: "toonflow", internalModel: "claude-3-5-sonnet", externalModel: "claude-3-5-sonnet-20241022", modelType: "text" },
-    { vendor: "toonflow", internalModel: "gpt-4o", externalModel: "gpt-4o-2024-08-06", modelType: "text" },
-    { vendor: "toonflow", internalModel: "deepseek-chat", externalModel: "deepseek-chat", modelType: "text" },
-    { vendor: "toonflow", internalModel: "flux", externalModel: "flux-1.1-pro", modelType: "image" },
-    { vendor: "toonflow", internalModel: "minimax-video", externalModel: "minimax-01", modelType: "video" },
+    { vendor: "hugai", internalModel: "claude-3-5-sonnet", externalModel: "claude-3-5-sonnet-20241022", modelType: "text" },
+    { vendor: "hugai", internalModel: "gpt-4o", externalModel: "gpt-4o-2024-08-06", modelType: "text" },
+    { vendor: "hugai", internalModel: "deepseek-chat", externalModel: "deepseek-chat", modelType: "text" },
+    { vendor: "hugai", internalModel: "flux", externalModel: "flux-1.1-pro", modelType: "image" },
+    { vendor: "hugai", internalModel: "minimax-video", externalModel: "minimax-01", modelType: "video" },
   ];
 
   const insertStmt = db.prepare(`

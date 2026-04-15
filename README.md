@@ -184,8 +184,8 @@ cd HUG AI-app
 yarn docker:local
 
 # 或者手动构建
-docker build -t toonflow .
-docker run -d -p <本地端口>:10588 -v <本地数据路径>:/app/data toonflow
+docker build -t hugai .
+docker run -d -p <本地端口>:10588 -v <本地数据路径>:/app/data hugai
 
 # 此时在相应端口的 /web/index.html 路径即可访问页面
 # 例如 http://localhost:10588/web/index.html
@@ -256,7 +256,7 @@ yarn build
 
 ```json
 {
-  "name": "toonflow-app",
+  "name": "hugai-app",
   "script": "data/serve/app.js",
   "instances": "max",
   "exec_mode": "cluster",
@@ -290,7 +290,7 @@ pm2 save
 
 ```bash
 pm2 list              # 查看进程
-pm2 logs toonflow-app # 查看日志
+pm2 logs hugai-app # 查看日志
 pm2 restart all       # 重启服务
 pm2 monit             # 监控面板
 ```

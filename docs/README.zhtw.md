@@ -174,8 +174,8 @@ cd Toonflow-app
 yarn docker:local
 
 # 或者手動建置
-docker build -t toonflow .
-docker run -d -p <本機 Port>:10588 -v <本機資料路徑>:/app/data toonflow
+docker build -t hugai .
+docker run -d -p <本機 Port>:10588 -v <本機資料路徑>:/app/data hugai
 
 # 此時在相應 Port 的 /web/index.html 路徑即可存取頁面
 # 例如 http://localhost:10588/web/index.html
@@ -246,7 +246,7 @@ yarn build
 
 ```json
 {
-  "name": "toonflow-app",
+  "name": "hugai-app",
   "script": "data/serve/app.js",
   "instances": "max",
   "exec_mode": "cluster",
@@ -280,7 +280,7 @@ pm2 save
 
 ```bash
 pm2 list              # 查看處理程序
-pm2 logs toonflow-app # 查看日誌
+pm2 logs hugai-app # 查看日誌
 pm2 restart all       # 重新啟動服務
 pm2 monit             # 監控面板
 ```

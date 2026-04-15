@@ -211,7 +211,7 @@ let closeServeFn: (() => Promise<void>) | undefined;
 
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: "toonflow",
+    scheme: "hugai",
     privileges: {
       secure: true,
       supportFetchAPI: true,
@@ -246,7 +246,7 @@ app.whenReady().then(async () => {
       }, 2000);
     });
     // 注册协议处理器
-    protocol.handle("toonflow", (request) => {
+    protocol.handle("hugai", (request) => {
       const url = new URL(request.url);
       const pathname = url.hostname.toLowerCase();
       const handlers: Record<string, () => object> = {

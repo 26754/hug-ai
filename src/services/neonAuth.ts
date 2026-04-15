@@ -9,7 +9,7 @@ import * as crypto from 'crypto'
 import * as bcrypt from 'bcryptjs'
 
 // JWT 密钥
-const JWT_SECRET = process.env.JWT_SECRET || 'toonflow-dev-secret-key-change-in-production'
+const JWT_SECRET = process.env.JWT_SECRET || 'hugai-dev-secret-key-change-in-production'
 const JWT_EXPIRES_IN = '1h'
 const REFRESH_TOKEN_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000 // 7 天
 

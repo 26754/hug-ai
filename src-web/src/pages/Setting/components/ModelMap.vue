@@ -118,7 +118,7 @@ const formData = reactive({
   enabled: true,
 });
 
-const vendors = ["toonflow", "openai", "anthropic", "deepseek", "google", " volcengine", "klingai", "minimax"];
+const vendors = ["hugai", "openai", "anthropic", "deepseek", "google", " volcengine", "klingai", "minimax"];
 
 const columns = [
   { colKey: "model", title: "映射关系", width: 300 },
