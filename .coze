@@ -3,12 +3,9 @@ requires = ["nodejs-24"]
 entrypoint = "src/app.ts"
 
 [dev]
-build = ["pnpm", "install", "--ignore-scripts"]
-run = ["bash", "-c", "cd /workspace/projects && export NODE_ENV=prod && node data/serve/app.js"]
+build = ["pnpm", "install"]
+run = ["pnpm", "dev"]
 
 [deploy]
-build = [
-  "bash", "-c",
-  "cd /workspace/projects && pnpm install --ignore-scripts && cd /workspace/projects/node_modules/.pnpm/better-sqlite3@12.9.0/node_modules/better-sqlite3 && npx -y node-gyp@10.1.0 rebuild --release && cd /workspace/projects && pnpm --filter hug-ai-web run build && NODE_PATH=/workspace/projects/node_modules/.pnpm/node_modules node /workspace/projects/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.cjs scripts/build.ts"
-]
-run = ["bash", "-c", "cd /workspace/projects && export NODE_ENV=prod && node data/serve/app.js"]
+build = ["pnpm", "deploy"]
+run = ["node", "dist/server.js"]
