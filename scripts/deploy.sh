@@ -34,22 +34,11 @@ cd "$PROJECT_DIR"
 echo ""
 echo "[4/5] 构建后端..."
 mkdir -p data/serve
-npx esbuild src/app.ts --bundle --platform=node \
-  --external:better-sqlite3 \
-  --external:sharp \
-  --external:mysql \
-  --external:mysql2 \
-  --external:pg \
-  --external:pg-query-stream \
-  --external:oracledb \
-  --external:tedious \
-  --external:mssql \
-  --external:sqlite3 \
-  --external:electron \
-  --external:@huggingface/transformers \
-  --external:onnxruntime-web \
-  --external:vm2 \
-  --outfile=data/serve/app.js
+npx esbuild src/app.ts --bundle --platform=node --outfile=data/serve/app.js \
+  --external:better-sqlite3 --external:sharp --external:mysql --external:mysql2 \
+  --external:pg --external:oracledb --external:tedious --external:mssql \
+  --external:sqlite3 --external:electron --external:@huggingface/transformers \
+  --external:onnxruntime-web --external:vm2
 echo "后端构建完成"
 
 # 5. 准备产物
