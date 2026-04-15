@@ -94,7 +94,7 @@ export default async (knex: Knex): Promise<void> => {
     if (!fs.existsSync(rootDir)) fs.mkdirSync(rootDir, { recursive: true });
     if (!fs.existsSync(path.join(rootDir, filename))) {
       code = vendorData[filename] || code;
-      fs.writeFileSync(path.join(rootDir, filename), code);
+      if (code) fs.writeFileSync(path.join(rootDir, filename), code);
     }
   }
   const defList = Object.keys(vendorData).map((filename) => filename.replace(/\.ts$/, ""));
