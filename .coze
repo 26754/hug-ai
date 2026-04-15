@@ -4,8 +4,12 @@ entrypoint = "src/app.ts"
 
 [dev]
 build = ["pnpm", "install"]
-run = ["bash", "-c", "cd $COZE_WORKSPACE_PATH && pnpm start"]
+run = ["node", "data/serve/app.js"]
 
 [deploy]
-build = ["bash", "scripts/deploy.sh"]
-run = ["bash", "-c", "node $COZE_WORKSPACE_PATH/data/serve/app.js"]
+build = [
+  "bash",
+  "-c",
+  "cd ${COZE_WORKSPACE_PATH} && pnpm install --ignore-scripts && cd node_modules/.pnpm/better-sqlite3@12.9.0/node_modules/better-sqlite3 && npx -y node-gyp@10.1.0 rebuild --release && cd ${COZE_WORKSPACE_PATH} && pnpm --filter hug-ai-web run build && NODE_PATH=${COZE_WORKSPACE_PATH}/node_modules/.pnpm/node_modules node ${COZE_WORKSPACE_PATH}/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/cli.cjs scripts/build.ts"
+]
+run = ["node", "data/serve/app.js"]
