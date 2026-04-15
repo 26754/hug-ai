@@ -60,13 +60,19 @@ export default async function startServe(randomPort: Boolean = false) {
   console.log("文件目录:", assetsDir);
   app.use("/assets", express.static(assetsDir, { acceptRanges: false }));
 
-  // 已移除 data/web 静态网站，启动页功能已禁用
+  // data/web 静态网站
+  const webDir = u.getPath("web");
+  if (fs.existsSync(webDir)) {
+    console.log("静态网站目录:", webDir);
+    app.use(express.static(webDir, { acceptRanges: false }));
+  } else {
+    console.warn("静态网站目录不存在:", webDir);
+  }
 
   // Supabase Token 验证中间件
   app.use(async (req, res, next) => {
     // 白名单路径（不需要认证）- 使用精确匹配
     const whiteList = [
-      "/", // 根路径
       "/api/login/login",          // 登录
       "/api/login/login/refresh", // 刷新 token (在 login 路由下)
       "/api/auth/register",        // 注册

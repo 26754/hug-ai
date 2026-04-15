@@ -125,7 +125,7 @@ export default async (knex: Knex): Promise<void> => {
 
 async function tempOnsert(tsCode: string) {
   const jsCode = transform(tsCode, { transforms: ["typescript"] }).code;
-  const exports = u.runCode(jsCode);
+  const exports = u.vm(jsCode);
   const vendor = exports.vendor;
   const data = await u.db("o_vendorConfig").where("id", vendor.id).first();
   if (data) return;
