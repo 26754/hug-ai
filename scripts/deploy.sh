@@ -3,15 +3,17 @@ set -e
 
 echo "=== HUG AI 部署脚本 ==="
 
+# 项目目录
+PROJECT_DIR="${COZE_WORKSPACE_PATH:-/workspace/projects}"
+
+echo "项目目录: $PROJECT_DIR"
+cd "$PROJECT_DIR"
+
 # 设置环境
 export NODE_ENV=prod
-export DEPLOY_RUN_PORT=5000
-
-# 项目目录
-PROJECT_DIR="/workspace/projects"
+export DEPLOY_RUN_PORT="${DEPLOY_RUN_PORT:-5000}"
 
 echo "1/5 安装依赖..."
-cd "$PROJECT_DIR"
 pnpm install --ignore-scripts
 
 echo "2/5 编译原生模块..."
@@ -31,11 +33,9 @@ echo "5/5 准备产物..."
 mkdir -p "$PROJECT_DIR/data/serve"
 mkdir -p "$PROJECT_DIR/data/web"
 
-# 复制前端构建产物
+# 复制前端构建产物 (vite 输出到 data/web)
 if [ -d "$PROJECT_DIR/src-web/dist" ]; then
   cp -r "$PROJECT_DIR/src-web/dist/"* "$PROJECT_DIR/data/web/"
-elif [ -d "$PROJECT_DIR/data/web" ]; then
-  echo "前端已构建到 data/web"
 fi
 
 # 复制后端产物

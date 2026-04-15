@@ -4,10 +4,8 @@ entrypoint = "src/app.ts"
 
 [dev]
 build = ["pnpm", "install"]
-run = ["bash", "-c", "cd /workspace/projects && pnpm start"]
+run = ["bash", "-c", "cd $COZE_WORKSPACE_PATH && pnpm start"]
 
 [deploy]
-build = [
-  "bash", "/workspace/projects/scripts/deploy.sh"
-]
-run = ["bash", "-c", "cd /workspace/projects && node data/serve/app.js"]
+build = ["bash", "scripts/deploy.sh"]
+run = ["bash", "-c", "node $COZE_WORKSPACE_PATH/data/serve/app.js"]
