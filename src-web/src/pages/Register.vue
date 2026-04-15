@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -11,8 +11,18 @@ const password = ref('')
 const confirmPassword = ref('')
 const username = ref('')
 const formError = ref('')
+const successMessage = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
+
+// 自动生成用户名建议
+const usernameSuggestion = computed(() => {
+  if (!email.value || !email.value.includes('@')) {
+    return ''
+  }
+  const base = email.value.split('@')[0]
+  return base.replace(/[^a-zA-Z0-9]/g, '').substring(0, 12)
+})
 
 const passwordStrength = computed(() => {
   const pwd = password.value
@@ -33,7 +43,7 @@ const passwordStrength = computed(() => {
     { text: '非常强', color: '#10b981' }
   ]
   
-  return { level: strength, ...levels[strength - 1] }
+  return { level: strength, ...levels[Math.min(strength - 1, 4)] }
 })
 
 const passwordRequirements = computed(() => [
@@ -43,8 +53,29 @@ const passwordRequirements = computed(() => [
   { text: '包含数字', valid: /[0-9]/.test(password.value) }
 ])
 
+const isFormValid = computed(() => {
+  return email.value && 
+         password.value.length >= 8 &&
+         password.value === confirmPassword.value &&
+         /[a-z]/.test(password.value) &&
+         /[A-Z]/.test(password.value) &&
+         /[0-9]/.test(password.value)
+})
+
+function applySuggestion() {
+  if (usernameSuggestion.value && !username.value) {
+    username.value = usernameSuggestion.value
+  }
+}
+
+function generateUsername() {
+  const random = Math.random().toString(36).substring(2, 8)
+  username.value = `user_${random}`
+}
+
 async function handleRegister() {
   formError.value = ''
+  successMessage.value = ''
   
   if (!email.value) {
     formError.value = '请输入邮箱'
@@ -73,19 +104,35 @@ async function handleRegister() {
   
   isLoading.value = true
   
-  const result = await authStore.register(email.value, password.value, username.value)
-  
-  isLoading.value = false
-  
-  if (result.success) {
-    router.push('/home')
-  } else {
-    formError.value = result.message
+  try {
+    const result = await authStore.register(email.value, password.value, username.value)
+    
+    if (result.success) {
+      successMessage.value = '注册成功！正在跳转...'
+      
+      // 延迟跳转，让用户看到成功消息
+      setTimeout(() => {
+        router.push('/home')
+      }, 800)
+    } else {
+      formError.value = result.message || '注册失败，请稍后重试'
+    }
+  } catch (err) {
+    console.error('Register error:', err)
+    formError.value = '网络连接失败，请检查网络后重试'
+  } finally {
+    isLoading.value = false
   }
 }
 
 function goToLogin() {
   router.push('/login')
+}
+
+function handleKeydown(event) {
+  if (event.key === 'Enter') {
+    handleRegister()
+  }
 }
 </script>
 
@@ -123,7 +170,16 @@ function goToLogin() {
           <h2 class="form-title">创建账号</h2>
           <p class="form-subtitle">开始您的创作之旅</p>
           
-          <form @submit.prevent="handleRegister" class="register-form">
+          <!-- Success Message -->
+          <div v-if="successMessage" class="success-message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            {{ successMessage }}
+          </div>
+          
+          <form @submit.prevent="handleRegister" class="register-form" :class="{ 'has-success': successMessage }">
             <div class="input-group">
               <div class="input-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -137,6 +193,8 @@ function goToLogin() {
                 class="input"
                 placeholder="请输入邮箱地址"
                 autocomplete="email"
+                :disabled="isLoading"
+                @keydown="handleKeydown"
               />
             </div>
             
@@ -151,9 +209,25 @@ function goToLogin() {
                 v-model="username"
                 type="text"
                 class="input"
-                placeholder="用户名（可选）"
+                :placeholder="usernameSuggestion ? `用户名（推荐: ${usernameSuggestion}）` : '用户名（可选）'"
                 autocomplete="username"
+                :disabled="isLoading"
+                @keydown="handleKeydown"
               />
+              <button
+                type="button"
+                class="input-action"
+                @click="usernameSuggestion ? applySuggestion() : generateUsername()"
+                :disabled="isLoading"
+                :title="usernameSuggestion ? '使用推荐用户名' : '随机生成'"
+              >
+                <svg v-if="usernameSuggestion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                </svg>
+              </button>
             </div>
             
             <div class="input-group">
@@ -169,11 +243,14 @@ function goToLogin() {
                 class="input"
                 placeholder="创建密码（至少 8 位）"
                 autocomplete="new-password"
+                :disabled="isLoading"
+                @keydown="handleKeydown"
               />
               <button
                 type="button"
                 class="input-action"
                 @click="showPassword = !showPassword"
+                :disabled="isLoading"
               >
                 <svg v-if="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -230,10 +307,24 @@ function goToLogin() {
                 v-model="confirmPassword"
                 :type="showPassword ? 'text' : 'password'"
                 class="input"
-                :class="{ 'input-error': confirmPassword && confirmPassword !== password }"
+                :class="{ 
+                  'input-error': confirmPassword && confirmPassword !== password,
+                  'input-success': confirmPassword && confirmPassword === password && password
+                }"
                 placeholder="确认密码"
                 autocomplete="new-password"
+                :disabled="isLoading"
+                @keydown="handleKeydown"
               />
+              <span v-if="confirmPassword" class="input-status">
+                <svg v-if="confirmPassword === password && password" class="success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <svg v-else class="error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </span>
             </div>
             
             <p v-if="formError" class="error-message">
@@ -245,8 +336,9 @@ function goToLogin() {
               {{ formError }}
             </p>
             
-            <button type="submit" class="btn btn-primary" :disabled="isLoading">
+            <button type="submit" class="btn btn-primary" :disabled="isLoading || successMessage">
               <span v-if="isLoading" class="loading-spinner"></span>
+              <span v-else-if="successMessage">注册成功</span>
               <span v-else>创建账号</span>
             </button>
           </form>
@@ -439,10 +531,41 @@ function goToLogin() {
   margin-bottom: 28px;
 }
 
+/* Success Message */
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 10px;
+  color: #22c55e;
+  font-size: 14px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.success-message svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .register-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.register-form.has-success .input {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 .input-group {
@@ -458,6 +581,11 @@ function goToLogin() {
   height: 18px;
   color: rgba(255, 255, 255, 0.4);
   pointer-events: none;
+  transition: color 0.3s;
+}
+
+.input-group:focus-within .input-icon {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .input-icon svg {
@@ -487,8 +615,24 @@ function goToLogin() {
   box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
 }
 
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .input-error {
   border-color: #ef4444;
+  animation: shake 0.4s ease;
+}
+
+.input-success {
+  border-color: #22c55e;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 .input-action {
@@ -507,14 +651,42 @@ function goToLogin() {
   transition: all 0.2s;
 }
 
-.input-action:hover {
+.input-action:hover:not(:disabled) {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.input-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .input-action svg {
   width: 16px;
   height: 16px;
+}
+
+.input-status {
+  position: absolute;
+  right: 12px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-status svg {
+  width: 16px;
+  height: 16px;
+}
+
+.input-status .success {
+  color: #22c55e;
+}
+
+.input-status .error {
+  color: #ef4444;
 }
 
 /* Password Strength */
@@ -523,6 +695,7 @@ function goToLogin() {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  animation: fadeIn 0.3s ease;
 }
 
 .strength-header {
@@ -594,6 +767,7 @@ function goToLogin() {
   border-radius: 8px;
   color: #ef4444;
   font-size: 13px;
+  animation: fadeIn 0.3s ease;
 }
 
 .error-message svg {
@@ -633,8 +807,9 @@ function goToLogin() {
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
 .loading-spinner {

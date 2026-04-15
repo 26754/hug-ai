@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -9,11 +9,21 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const formError = ref('')
+const successMessage = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 
+// 自动填充上次登录的邮箱
+onMounted(() => {
+  const lastEmail = localStorage.getItem('last_login_email')
+  if (lastEmail) {
+    email.value = lastEmail
+  }
+})
+
 async function handleLogin() {
   formError.value = ''
+  successMessage.value = ''
   
   if (!email.value) {
     formError.value = '请输入邮箱'
@@ -27,19 +37,38 @@ async function handleLogin() {
   
   isLoading.value = true
   
-  const result = await authStore.login(email.value, password.value)
-  
-  isLoading.value = false
-  
-  if (result.success) {
-    router.push('/home')
-  } else {
-    formError.value = result.message
+  try {
+    const result = await authStore.login(email.value, password.value)
+    
+    if (result.success) {
+      // 保存最后登录的邮箱
+      localStorage.setItem('last_login_email', email.value)
+      successMessage.value = `欢迎回来，${result.user?.username || result.user?.email}！正在跳转...`
+      
+      // 延迟跳转，让用户看到成功消息
+      setTimeout(() => {
+        router.push('/home')
+      }, 800)
+    } else {
+      formError.value = result.message || '登录失败，请检查邮箱和密码'
+    }
+  } catch (err) {
+    console.error('Login error:', err)
+    formError.value = '网络连接失败，请检查网络后重试'
+  } finally {
+    isLoading.value = false
   }
 }
 
 function goToRegister() {
   router.push('/register')
+}
+
+// 回车键登录
+function handleKeydown(event) {
+  if (event.key === 'Enter') {
+    handleLogin()
+  }
 }
 </script>
 
@@ -77,7 +106,16 @@ function goToRegister() {
           <h2 class="form-title">欢迎回来</h2>
           <p class="form-subtitle">登录您的账号继续创作</p>
           
-          <form @submit.prevent="handleLogin" class="login-form">
+          <!-- Success Message -->
+          <div v-if="successMessage" class="success-message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            {{ successMessage }}
+          </div>
+          
+          <form @submit.prevent="handleLogin" class="login-form" :class="{ 'has-success': successMessage }">
             <div class="input-group">
               <div class="input-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -89,9 +127,11 @@ function goToRegister() {
                 v-model="email"
                 type="email"
                 class="input"
-                :class="{ 'input-error': formError }"
+                :class="{ 'input-error': formError, 'input-success': successMessage }"
                 placeholder="请输入邮箱地址"
                 autocomplete="email"
+                :disabled="isLoading"
+                @keydown="handleKeydown"
               />
             </div>
             
@@ -106,14 +146,17 @@ function goToRegister() {
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
                 class="input"
-                :class="{ 'input-error': formError }"
+                :class="{ 'input-error': formError, 'input-success': successMessage }"
                 placeholder="请输入密码"
                 autocomplete="current-password"
+                :disabled="isLoading"
+                @keydown="handleKeydown"
               />
               <button
                 type="button"
                 class="input-action"
                 @click="showPassword = !showPassword"
+                :disabled="isLoading"
               >
                 <svg v-if="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -135,8 +178,9 @@ function goToRegister() {
               {{ formError }}
             </p>
             
-            <button type="submit" class="btn btn-primary" :disabled="isLoading">
+            <button type="submit" class="btn btn-primary" :disabled="isLoading || successMessage">
               <span v-if="isLoading" class="loading-spinner"></span>
+              <span v-else-if="successMessage">登录成功</span>
               <span v-else>登 录</span>
             </button>
           </form>
@@ -151,14 +195,9 @@ function goToRegister() {
           <div class="feature-item">
             <div class="feature-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/>
-                <path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-                <path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/>
-                <path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/>
-                <path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/>
-                <path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
-                <path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/>
-                <path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z"/>
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
               </svg>
             </div>
             <span>AI 智能创作</span>
@@ -364,10 +403,41 @@ function goToRegister() {
   margin-bottom: 32px;
 }
 
+/* Success Message */
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 10px;
+  color: #22c55e;
+  font-size: 14px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.success-message svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .login-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.login-form.has-success .input {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 .input-group {
@@ -383,6 +453,11 @@ function goToRegister() {
   height: 20px;
   color: rgba(255, 255, 255, 0.4);
   pointer-events: none;
+  transition: color 0.3s;
+}
+
+.input-group:focus-within .input-icon {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .input-icon svg {
@@ -412,8 +487,24 @@ function goToRegister() {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .input-error {
   border-color: #ef4444;
+  animation: shake 0.4s ease;
+}
+
+.input-success {
+  border-color: #22c55e;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 .input-action {
@@ -432,9 +523,14 @@ function goToRegister() {
   transition: all 0.2s;
 }
 
-.input-action:hover {
+.input-action:hover:not(:disabled) {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.input-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .input-action svg {
@@ -452,6 +548,7 @@ function goToRegister() {
   border-radius: 8px;
   color: #ef4444;
   font-size: 13px;
+  animation: fadeIn 0.3s ease;
 }
 
 .error-message svg {
@@ -491,8 +588,9 @@ function goToRegister() {
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
 .loading-spinner {
