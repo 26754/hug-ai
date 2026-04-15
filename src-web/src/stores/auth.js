@@ -48,21 +48,35 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function refreshAccessToken() {
     try {
-      const response = await fetch(`${API_BASE}/login/refresh`, {
+      // 移除 Bearer 前缀（如果有）
+      const cleanRefreshToken = (refreshToken.value || '').replace('Bearer ', '')
+      
+      const response = await fetch(`${API_BASE}/login/login/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ refresh_token: refreshToken.value })
+        body: JSON.stringify({ refresh_token: cleanRefreshToken })
       })
       
       const result = await response.json()
       
       if (result.code === 200 && result.data) {
-        token.value = result.data.token
-        refreshToken.value = result.data.refresh_token
-        localStorage.setItem('neon_token', token.value)
-        localStorage.setItem('neon_refresh_token', refreshToken.value)
+        // 处理 token（可能包含 Bearer 前缀）
+        let newToken = result.data.token || ''
+        if (newToken.startsWith('Bearer ')) {
+          newToken = newToken.substring(7)
+        }
+        
+        let newRefreshToken = result.data.refresh_token || ''
+        if (newRefreshToken.startsWith('Bearer ')) {
+          newRefreshToken = newRefreshToken.substring(7)
+        }
+        
+        token.value = newToken
+        refreshToken.value = newRefreshToken
+        localStorage.setItem('neon_token', newToken)
+        localStorage.setItem('neon_refresh_token', newRefreshToken)
         return true
       }
       return false
@@ -88,14 +102,29 @@ export const useAuthStore = defineStore('auth', () => {
       const result = await response.json()
       
       if (result.code === 200 && result.data) {
-        token.value = result.data.token
-        refreshToken.value = result.data.refresh_token
-        user.value = result.data.user
+        // 处理 token（可能包含 Bearer 前缀）
+        let tokenValue = result.data.token || result.data.access_token || ''
+        if (tokenValue.startsWith('Bearer ')) {
+          tokenValue = tokenValue.substring(7)
+        }
         
-        localStorage.setItem('neon_token', token.value)
-        localStorage.setItem('neon_refresh_token', refreshToken.value)
+        let refreshTokenValue = result.data.refresh_token || ''
+        if (refreshTokenValue.startsWith('Bearer ')) {
+          refreshTokenValue = refreshTokenValue.substring(7)
+        }
         
-        return { success: true, user: result.data.user }
+        token.value = tokenValue
+        refreshToken.value = refreshTokenValue
+        user.value = result.data.user || {
+          id: result.data.id,
+          email: result.data.email,
+          username: result.data.username
+        }
+        
+        localStorage.setItem('neon_token', tokenValue)
+        localStorage.setItem('neon_refresh_token', refreshTokenValue)
+        
+        return { success: true, user: user.value }
       } else {
         error.value = result.message || '登录失败'
         return { success: false, message: result.message }
@@ -125,16 +154,27 @@ export const useAuthStore = defineStore('auth', () => {
       const result = await response.json()
       
       if (result.code === 200 && result.data) {
-        token.value = result.data.token
-        refreshToken.value = result.data.refresh_token
+        // 处理 token（可能包含 Bearer 前缀）
+        let tokenValue = result.data.token || result.data.access_token || ''
+        if (tokenValue.startsWith('Bearer ')) {
+          tokenValue = tokenValue.substring(7)
+        }
+        
+        let refreshTokenValue = result.data.refresh_token || ''
+        if (refreshTokenValue.startsWith('Bearer ')) {
+          refreshTokenValue = refreshTokenValue.substring(7)
+        }
+        
+        token.value = tokenValue
+        refreshToken.value = refreshTokenValue
         user.value = {
           id: result.data.id,
           email: result.data.email,
           username: result.data.username
         }
         
-        localStorage.setItem('neon_token', token.value)
-        localStorage.setItem('neon_refresh_token', refreshToken.value)
+        localStorage.setItem('neon_token', tokenValue)
+        localStorage.setItem('neon_refresh_token', refreshTokenValue)
         
         return { success: true, user: user.value }
       } else {

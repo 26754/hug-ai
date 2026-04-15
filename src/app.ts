@@ -73,10 +73,12 @@ export default async function startServe(randomPort: Boolean = false) {
   app.use(async (req, res, next) => {
     // 白名单路径（不需要认证）- 使用前缀匹配
     const whiteList = [
+      // 认证相关
       "/api/auth/register",           // 注册
       "/api/auth/register/login",     // 登录 (Neon Auth)
       "/api/auth/login",              // 登录 (备用)
-      "/api/login/login/refresh",     // 刷新 token
+      "/api/login/login",            // 登录路由
+      "/api/login/login/refresh",    // 刷新 token
       "/api/login/refresh",           // 刷新 token (别名)
       "/api/other/getVersion",        // 获取版本
     ];
