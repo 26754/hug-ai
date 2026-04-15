@@ -223,3 +223,259 @@ body {
 .mb-2 { margin-bottom: 8px; }
 .mb-4 { margin-bottom: 16px; }
 .mb-6 { margin-bottom: 24px; }
+
+/* ==================== 响应式布局 ==================== */
+
+/* 断点变量 */
+:root {
+  --bp-xs: 320px;
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-xxl: 1536px;
+}
+
+/* 响应式工具类 */
+.responsive {}
+
+/* 移动端 */
+@media (max-width: 640px) {
+  .hide-xs { display: none !important; }
+  .show-xs { display: block !important; }
+}
+
+/* 平板 */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .hide-sm { display: none !important; }
+  .show-sm { display: block !important; }
+}
+
+/* 桌面 */
+@media (min-width: 1025px) {
+  .hide-md { display: none !important; }
+  .show-md { display: block !important; }
+}
+
+/* 栅格系统 */
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Flex 布局 */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+
+/* ==================== 动画效果 ==================== */
+
+/* 页面过渡 */
+.page-transition {
+  animation: pageIn 0.3s ease;
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 淡入淡出 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 滑动淡入 */
+.slide-fade-enter-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-fade-enter-from {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+/* 缩放动画 */
+.scale-enter-active,
+.scale-leave-active {
+  transition: all 0.3s ease;
+}
+
+.scale-enter-from,
+.scale-leave-to {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+/* 加载骨架屏 */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--card) 25%,
+    var(--card-hover) 50%,
+    var(--card) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ==================== 暗色/浅色模式 ==================== */
+
+/* 浅色模式 */
+html:not(.dark) {
+  --background: #f8fafc;
+  --background-light: #f1f5f9;
+  --card: #ffffff;
+  --card-hover: #f8fafc;
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --border-light: #cbd5e1;
+}
+
+/* 暗色模式 */
+html.dark {
+  --background: #0f172a;
+  --background-light: #1e293b;
+  --card: #1e293b;
+  --card-hover: #334155;
+  --text: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: #334155;
+  --border-light: #475569;
+}
+
+/* ==================== 紧凑模式 ==================== */
+
+html.compact-mode {
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+}
+
+/* ==================== 禁用动画 ==================== */
+
+html.no-animation *,
+html.no-animation *::before,
+html.no-animation *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* ==================== 滚动条美化 ==================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* ==================== 选中样式 ==================== */
+
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+/* ==================== 辅助类 ==================== */
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ==================== Focus 样式 ==================== */
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ==================== 暗色模式下的 Focus ==================== */
+
+html.dark :focus-visible {
+  outline-color: var(--primary-light);
+}
