@@ -6,7 +6,7 @@
 
 import { neonQuery, neonQueryOne } from '@/storage/neon/client'
 import * as crypto from 'crypto'
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 
 // JWT 密钥
 const JWT_SECRET = process.env.JWT_SECRET || 'toonflow-dev-secret-key-change-in-production'
