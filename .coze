@@ -4,8 +4,10 @@ entrypoint = "src/app.ts"
 
 [dev]
 build = ["pnpm", "install"]
-run = ["pnpm", "dev"]
+run = ["bash", "-c", "cd /workspace/projects && pnpm start"]
 
 [deploy]
-build = ["pnpm", "deploy"]
-run = ["node", "dist/server.js"]
+build = [
+  "bash", "/workspace/projects/scripts/deploy.sh"
+]
+run = ["bash", "-c", "cd /workspace/projects && node data/serve/app.js"]
