@@ -31,6 +31,9 @@ export default defineConfig({
     emptyOutDir: true,
     cssCodeSplit: true,
     assetsInlineLimit: 4096,
+    // CSS 压缩配置，safari5+: true 修复选择器错误
+    cssMinify: 'esbuild',
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
