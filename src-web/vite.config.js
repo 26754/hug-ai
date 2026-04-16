@@ -9,7 +9,9 @@ const apiUrl = process.env.VITE_API_URL || `http://${process.env.COZE_PROJECT_DO
 const outDir = path.resolve(__dirname, '../data/web')
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
@@ -31,22 +33,37 @@ export default defineConfig({
     emptyOutDir: true,
     cssCodeSplit: true,
     assetsInlineLimit: 4096,
-    // CSS 压缩配置，safari5+: true 修复选择器错误
     cssMinify: 'esbuild',
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vue-vendor': ['vue', 'vue-router', 'pinia', 'vue-i18n'],
-          'tdesign': ['tdesign-vue-next'],
-          'utils': ['axios', '@vueuse/core', 'dayjs'],
+        manualChunks(id) {
+          // Vue 核心
+          if (id.includes('node_modules/vue') || id.includes('node_modules/@vue')) {
+            return 'vue-vendor'
+          }
+          // TDesign 组件库
+          if (id.includes('node_modules/tdesign-vue-next')) {
+            return 'tdesign'
+          }
+          // 工具库
+          if (id.includes('node_modules/axios') || 
+              id.includes('node_modules/@vueuse') ||
+              id.includes('node_modules/dayjs')) {
+            return 'utils'
+          }
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
+        // 自定义文件名规则，减少缓存失效
+        format: 'es',
       },
     },
-    chunkSizeWarningLimit: 500,
+    // 调整警告限制，因为 TDesign 组件库本身较大
+    chunkSizeWarningLimit: 600,
+    // 报告压缩后的大小
+    reportCompressedSize: true,
   },
   optimizeDeps: {
     include: [
