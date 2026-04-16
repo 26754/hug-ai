@@ -23,6 +23,7 @@ const config = {
     'electron',
     '@huggingface/transformers',
     'onnxruntime-web',
+    'onnxruntime-node',
     'vm2'
   ],
   format: 'cjs',
