@@ -1,4 +1,6 @@
 // esbuild 后端构建配置
+const esbuild = require('esbuild')
+
 const config = {
   entryPoints: ['src/app.ts'],
   bundle: true,
@@ -24,8 +26,11 @@ const config = {
     'vm2'
   ],
   format: 'cjs',
-  outExtension: { '.js': '.js' },
   logLevel: 'info'
 }
 
-require('esbuild').build(config).catch(() => process.exit(1))
+esbuild.build(config).then(() => {
+  console.log('Build complete')
+}).catch(() => {
+  process.exit(1)
+})
