@@ -1,10 +1,12 @@
 /**
- * 静默同步服务 v2
+ * 静默同步服务 v3
  * 跨设备、跨浏览器数据同步 - 用户无感知
+ * 支持设置(o_setting)跨设备同步
  */
 
 import { neonQuery, neonQueryOne } from '@/storage/neon/client'
 import { getLocalDb } from '@/storage/sqlite/localDb'
+import { v4 as uuid } from 'uuid'
 
 // 检查是否使用 Neon
 const USE_NEON = !!process.env.NEON_CONNECTION_STRING
@@ -26,44 +28,47 @@ const state: SyncState = {
 
 // 需要同步的表（按依赖顺序）
 const SYNC_TABLES = [
-  'o_project',        // 1. 项目（顶层）
-  'o_novel',          // 2. 小说
-  'o_script',         // 3. 剧本
-  'o_scene',          // 4. 场景
-  'o_character',      // 5. 角色
-  'o_character_image',// 6. 角色图片
-  'o_storyboard',     // 7. 分镜
-  'o_storyboard_frame',// 8. 分镜帧
-  'o_image',          // 9. 图片
-  'o_video',          // 10. 视频
-  'o_audio',          // 11. 音频
-  'o_setting',       // 12. 设置
-  'o_vendor',         // 13. 供应商
-  'o_vendor_input'    // 14. 供应商输入配置
+  'o_project',
+  'o_novel',
+  'o_script',
+  'o_scene',
+  'o_character',
+  'o_character_image',
+  'o_storyboard',
+  'o_storyboard_frame',
+  'o_image',
+  'o_video',
+  'o_audio',
+  'o_setting',
+  'o_vendor',
+  'o_vendor_input'
 ]
 
 /**
  * 生成设备ID
  */
-function getDeviceId(req?: any): string {
+function getDeviceId(): string {
   if (state.deviceId) return state.deviceId
-  
-  // 从请求头或生成唯一ID
-  const deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  state.deviceId = deviceId
-  return deviceId
+  state.deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  return state.deviceId
+}
+
+/**
+ * 检查是否是设置表
+ */
+function isSettingTable(table: string): boolean {
+  return table === 'o_setting'
 }
 
 /**
  * 静默同步入口 - 登录时自动调用
- * 用户无感知：后台静默执行
  */
-export async function silentSyncOnLogin(userId: string, req?: any): Promise<{ success: boolean; message: string }> {
+export async function silentSyncOnLogin(userId: string): Promise<{ success: boolean; message: string }> {
   if (!USE_NEON) {
     return { success: true, message: '未启用云同步' }
   }
 
-  const deviceId = getDeviceId(req)
+  const deviceId = getDeviceId()
   
   if (state.isSyncing) {
     console.log('[Sync] 同步进行中，跳过')
@@ -74,28 +79,11 @@ export async function silentSyncOnLogin(userId: string, req?: any): Promise<{ su
   console.log(`[Sync] 登录同步开始 用户:${userId} 设备:${deviceId}`)
 
   try {
-    // 1. 检查云端是否有该用户数据
-    const hasCloudData = await checkUserHasCloudData(userId)
-    
-    // 2. 检查本地是否有该用户数据
-    const hasLocalData = await checkUserHasLocalData(userId)
-    
-    if (!hasCloudData && !hasLocalData) {
-      // 首次使用，无数据
-      console.log('[Sync] 首次使用，无需同步')
-    } else if (!hasCloudData && hasLocalData) {
-      // 本地有数据，云端无数据 → 上传本地到云端
-      console.log('[Sync] 首次登录，上传本地数据到云端')
-      await uploadLocalToCloud(userId)
-    } else if (hasCloudData && !hasLocalData) {
-      // 云端有数据，本地无数据 → 下载云端到本地
-      console.log('[Sync] 新设备登录，下载云端数据到本地')
-      await downloadCloudToLocal(userId)
-    } else {
-      // 双方都有数据 → 合并同步
-      console.log('[Sync] 多设备同步，合并数据')
-      await mergeSync(userId)
-    }
+    // 1. 同步普通业务表
+    await syncBusinessTables(userId)
+
+    // 2. 同步设置表（跨设备共享）
+    await syncSettings(userId)
 
     // 3. 记录同步日志
     await logSync(userId, deviceId, 'login_sync', 'success')
@@ -115,130 +103,141 @@ export async function silentSyncOnLogin(userId: string, req?: any): Promise<{ su
 }
 
 /**
- * 后台增量同步 - 数据变更时自动调用
+ * 同步业务表（按用户隔离）
  */
-export async function incrementalSync(userId: string, tableName: string, recordId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
-  if (!USE_NEON || state.isSyncing) return
+async function syncBusinessTables(userId: string): Promise<void> {
+  const businessTables = SYNC_TABLES.filter(t => !isSettingTable(t))
 
-  // 延迟执行，避免频繁同步
-  setTimeout(async () => {
-    try {
-      await syncSingleRecord(userId, tableName, recordId, action)
-    } catch (err) {
-      console.warn(`[Sync] 增量同步失败 ${tableName}:`, err)
-    }
-  }, 2000) // 2秒后执行，合并频繁变更
-}
-
-/**
- * 同步单条记录
- */
-async function syncSingleRecord(userId: string, tableName: string, recordId: string, action: string): Promise<void> {
-  if (!SYNC_TABLES.includes(tableName)) return
-
-  try {
-    switch (action) {
-      case 'create':
-      case 'update': {
-        const localRecord = await getLocalRecord(tableName, recordId)
-        if (localRecord) {
-          await upsertCloudRecord(tableName, localRecord)
-        }
-        break
-      }
-      case 'delete': {
-        await deleteCloudRecord(tableName, recordId)
-        break
-      }
-    }
-    console.log(`[Sync] 增量同步 ${tableName}:${recordId} (${action})`)
-  } catch (err) {
-    console.warn(`[Sync] 增量同步失败:`, err)
-  }
-}
-
-/**
- * 检查云端是否有该用户数据
- */
-async function checkUserHasCloudData(userId: string): Promise<boolean> {
-  try {
-    const result = await neonQueryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM o_project WHERE user_id = $1 LIMIT 1',
-      [userId]
-    )
-    return result ? Number(result.count) > 0 : false
-  } catch {
-    return false
-  }
-}
-
-/**
- * 检查本地是否有该用户数据
- */
-async function checkUserHasLocalData(userId: string): Promise<boolean> {
-  try {
-    const db = getLocalDb()
-    const result = await db('o_project').where({ user_id: userId }).count('* as count').first()
-    return result ? Number(result.count) > 0 : false
-  } catch {
-    return false
-  }
-}
-
-/**
- * 上传本地数据到云端
- */
-async function uploadLocalToCloud(userId: string): Promise<void> {
-  for (const table of SYNC_TABLES) {
+  for (const table of businessTables) {
     try {
       const localData = await getLocalData(table, userId)
-      if (localData.length > 0) {
-        await batchUpsertCloud(table, localData)
-        console.log(`[Sync] 上传 ${table}: ${localData.length} 条`)
-      }
-    } catch (err) {
-      console.warn(`[Sync] 上传 ${table} 失败:`, err)
-    }
-  }
-}
-
-/**
- * 下载云端数据到本地
- */
-async function downloadCloudToLocal(userId: string): Promise<void> {
-  for (const table of SYNC_TABLES) {
-    try {
       const cloudData = await getCloudData(table, userId)
-      if (cloudData.length > 0) {
-        await batchUpsertLocal(table, cloudData)
-        console.log(`[Sync] 下载 ${table}: ${cloudData.length} 条`)
-      }
+      await mergeTable(table, localData, cloudData, userId)
     } catch (err) {
-      console.warn(`[Sync] 下载 ${table} 失败:`, err)
+      console.warn(`[Sync] 同步 ${table} 失败:`, err)
     }
   }
 }
 
 /**
- * 合并同步 - 双向同步
+ * 同步设置表（跨设备共享）
+ * 设置表比较特殊：本地只有 key-value，云端有 user_id
  */
-async function mergeSync(userId: string): Promise<void> {
-  for (const table of SYNC_TABLES) {
-    try {
-      await mergeTable(table, userId)
-    } catch (err) {
-      console.warn(`[Sync] 合并 ${table} 失败:`, err)
+async function syncSettings(userId: string): Promise<void> {
+  try {
+    // 1. 获取本地设置
+    const localSettings = await getLocalSettings()
+    
+    // 2. 获取云端设置
+    const cloudSettings = await getCloudSettings(userId)
+
+    // 3. 构建 map
+    const localMap = new Map(localSettings.map(s => [s.key, s.value]))
+    const cloudMap = new Map(cloudSettings.map(s => [s.key, s.value]))
+
+    // 4. 上传本地独有的设置到云端
+    let uploadCount = 0
+    for (const [key, value] of localMap) {
+      if (!cloudMap.has(key)) {
+        await uploadSetting(key, value, userId)
+        uploadCount++
+      }
     }
+
+    // 5. 下载云端独有的设置到本地
+    let downloadCount = 0
+    for (const [key, value] of cloudMap) {
+      if (!localMap.has(key)) {
+        await downloadSetting(key, value)
+        downloadCount++
+      } else {
+        // 6. 冲突处理：以云端为准（最新修改优先）
+        const cloudSetting = cloudSettings.find(s => s.key === key)
+        if (cloudSetting) {
+          const cloudTime = new Date(cloudSetting.updated_at || 0).getTime()
+          // 云端更新时，下载到本地
+          await updateLocalSetting(key, value)
+          downloadCount++
+        }
+      }
+    }
+
+    console.log(`[Sync] 设置同步完成: 上传 ${uploadCount}, 下载 ${downloadCount}`)
+  } catch (err) {
+    console.warn('[Sync] 同步设置失败:', err)
   }
+}
+
+/**
+ * 获取本地设置
+ */
+async function getLocalSettings(): Promise<{ key: string; value: string }[]> {
+  const db = getLocalDb()
+  try {
+    return await db('o_setting').select('key', 'value')
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 获取云端设置
+ */
+async function getCloudSettings(userId: string): Promise<any[]> {
+  try {
+    const result = await neonQuery(
+      'SELECT key, value, updated_at FROM o_setting WHERE user_id = $1',
+      [userId]
+    )
+    return result.rows
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 上传设置到云端
+ */
+async function uploadSetting(key: string, value: string, userId: string): Promise<void> {
+  const now = new Date().toISOString()
+  await neonQuery(
+    `INSERT INTO o_setting (id, user_id, key, value, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (user_id, key) DO UPDATE SET
+     value = EXCLUDED.value, updated_at = EXCLUDED.updated_at`,
+    [uuid(), userId, key, value, now, now]
+  )
+}
+
+/**
+ * 下载设置到本地
+ */
+async function downloadSetting(key: string, value: string): Promise<void> {
+  const db = getLocalDb()
+  try {
+    const existing = await db('o_setting').where({ key }).first()
+    if (existing) {
+      await db('o_setting').where({ key }).update({ value })
+    } else {
+      await db('o_setting').insert({ key, value })
+    }
+  } catch (err) {
+    console.warn(`[Sync] 下载设置失败 ${key}:`, err)
+  }
+}
+
+/**
+ * 更新本地设置
+ */
+async function updateLocalSetting(key: string, value: string): Promise<void> {
+  const db = getLocalDb()
+  await db('o_setting').where({ key }).update({ value })
 }
 
 /**
  * 合并单个表的数据
  */
-async function mergeTable(table: string, userId: string): Promise<void> {
-  const localData = await getLocalData(table, userId)
-  const cloudData = await getCloudData(table, userId)
-  
+async function mergeTable(table: string, localData: any[], cloudData: any[], userId: string): Promise<void> {
   const localMap = new Map(localData.map(r => [r.id, r]))
   const cloudMap = new Map(cloudData.map(r => [r.id, r]))
   
@@ -267,22 +266,23 @@ async function mergeTable(table: string, userId: string): Promise<void> {
       const cloudTime = new Date(cloud.updated_at || cloud.created_at || 0).getTime()
       
       if (localTime > cloudTime) {
-        toUpload.push(local) // 本地更新，上传
+        toUpload.push(local)
       } else if (cloudTime > localTime) {
-        toDownload.push(cloud) // 云端更新，下载
+        toDownload.push(cloud)
       }
     }
   }
   
-  // 执行上传和下载
+  // 执行上传
   if (toUpload.length > 0) {
-    await batchUpsertCloud(table, toUpload)
-    console.log(`[Sync] 上传更新 ${table}: ${toUpload.length} 条`)
+    await batchUpsertCloud(table, toUpload, userId)
+    console.log(`[Sync] 上传 ${table}: ${toUpload.length} 条`)
   }
   
+  // 执行下载
   if (toDownload.length > 0) {
     await batchUpsertLocal(table, toDownload)
-    console.log(`[Sync] 下载更新 ${table}: ${toDownload.length} 条`)
+    console.log(`[Sync] 下载 ${table}: ${toDownload.length} 条`)
   }
 }
 
@@ -295,19 +295,14 @@ async function getLocalData(table: string, userId: string): Promise<any[]> {
 }
 
 /**
- * 获取本地单条记录
- */
-async function getLocalRecord(table: string, recordId: string): Promise<any | null> {
-  const db = getLocalDb()
-  return await db(table).where({ id: recordId }).first()
-}
-
-/**
  * 获取云端表数据
  */
 async function getCloudData(table: string, userId: string): Promise<any[]> {
   try {
-    const result = await neonQuery(`SELECT * FROM ${table} WHERE user_id = $1`, [userId])
+    const result = await neonQuery(
+      `SELECT * FROM ${table} WHERE user_id = $1`,
+      [userId]
+    )
     return result.rows
   } catch {
     return []
@@ -317,7 +312,7 @@ async function getCloudData(table: string, userId: string): Promise<any[]> {
 /**
  * 批量 upsert 到云端
  */
-async function batchUpsertCloud(table: string, data: any[]): Promise<void> {
+async function batchUpsertCloud(table: string, data: any[], userId: string): Promise<void> {
   if (data.length === 0) return
 
   const columns = Object.keys(data[0]).filter(c => c !== 'created_at' && c !== 'updated_at')
@@ -340,7 +335,7 @@ async function batchUpsertCloud(table: string, data: any[]): Promise<void> {
     INSERT INTO ${table} (${allColumns.join(', ')})
     VALUES ${placeholders.join(', ')}
     ON CONFLICT (id) DO UPDATE SET
-    ${columns.map((c, i) => `${c} = EXCLUDED.${c}`).join(', ')},
+    ${columns.filter(c => c !== 'id').map((c) => `${c} = EXCLUDED.${c}`).join(', ')},
     updated_at = EXCLUDED.updated_at
   `
   
@@ -357,36 +352,22 @@ async function batchUpsertLocal(table: string, data: any[]): Promise<void> {
   
   for (const row of data) {
     try {
-      await db(table).upsert(row, { id: row.id })
+      // 移除云端特有的字段
+      const localRow = { ...row }
+      delete localRow.user_id
+      delete localRow.created_at
+      delete localRow.updated_at
+      
+      const existing = await db(table).where({ id: row.id }).first()
+      if (existing) {
+        await db(table).where({ id: row.id }).update(localRow)
+      } else {
+        await db(table).insert(localRow)
+      }
     } catch (err) {
       console.warn(`[Sync] 写入本地 ${table} 失败:`, err)
     }
   }
-}
-
-/**
- * Upsert 单条到云端
- */
-async function upsertCloudRecord(table: string, record: any): Promise<void> {
-  const columns = Object.keys(record)
-  const values = columns.map(c => record[c])
-  
-  const query = `
-    INSERT INTO ${table} (${columns.join(', ')})
-    VALUES (${columns.map((_, i) => `$${i + 1}`).join(', ')})
-    ON CONFLICT (id) DO UPDATE SET
-    ${columns.filter(c => c !== 'id').map((c, i) => `${c} = $${columns.indexOf(c) + 1}`).join(', ')},
-    updated_at = CURRENT_TIMESTAMP
-  `
-  
-  await neonQuery(query, values)
-}
-
-/**
- * 删除云端记录
- */
-async function deleteCloudRecord(table: string, recordId: string): Promise<void> {
-  await neonQuery(`DELETE FROM ${table} WHERE id = $1`, [recordId])
 }
 
 /**
@@ -401,6 +382,78 @@ async function logSync(userId: string, deviceId: string, syncType: string, statu
   } catch {
     // 忽略日志写入失败
   }
+}
+
+/**
+ * 后台增量同步
+ */
+export async function incrementalSync(userId: string, tableName: string, recordId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
+  if (!USE_NEON || state.isSyncing) return
+
+  setTimeout(async () => {
+    try {
+      await syncSingleRecord(userId, tableName, recordId, action)
+    } catch (err) {
+      console.warn(`[Sync] 增量同步失败:`, err)
+    }
+  }, 2000)
+}
+
+/**
+ * 同步单条记录
+ */
+async function syncSingleRecord(userId: string, tableName: string, recordId: string, action: string): Promise<void> {
+  if (!SYNC_TABLES.includes(tableName)) return
+
+  try {
+    switch (action) {
+      case 'create':
+      case 'update': {
+        const localRecord = await getLocalRecord(tableName, recordId)
+        if (localRecord) {
+          if (isSettingTable(tableName)) {
+            await uploadSetting(localRecord.key, localRecord.value, userId)
+          } else {
+            await upsertCloudRecord(tableName, localRecord)
+          }
+        }
+        break
+      }
+      case 'delete': {
+        if (!isSettingTable(tableName)) {
+          await deleteCloudRecord(tableName, recordId)
+        }
+        break
+      }
+    }
+    console.log(`[Sync] 增量同步 ${tableName}:${recordId} (${action})`)
+  } catch (err) {
+    console.warn(`[Sync] 增量同步失败:`, err)
+  }
+}
+
+async function getLocalRecord(table: string, recordId: string): Promise<any | null> {
+  const db = getLocalDb()
+  return await db(table).where({ id: recordId }).first()
+}
+
+async function upsertCloudRecord(table: string, record: any): Promise<void> {
+  const columns = Object.keys(record)
+  const values = columns.map(c => record[c])
+  
+  const query = `
+    INSERT INTO ${table} (${columns.join(', ')})
+    VALUES (${columns.map((_, i) => `$${i + 1}`).join(', ')})
+    ON CONFLICT (id) DO UPDATE SET
+    ${columns.filter(c => c !== 'id').map((c) => `${c} = EXCLUDED.${c}`).join(', ')},
+    updated_at = CURRENT_TIMESTAMP
+  `
+  
+  await neonQuery(query, values)
+}
+
+async function deleteCloudRecord(table: string, recordId: string): Promise<void> {
+  await neonQuery(`DELETE FROM ${table} WHERE id = $1`, [recordId])
 }
 
 /**
