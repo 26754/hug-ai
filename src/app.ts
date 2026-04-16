@@ -25,6 +25,22 @@ export default async function startServe(randomPort: Boolean = false) {
 
   expressWs(app);
 
+  // 健康检查端点（云部署必需）
+  app.get("/health", (_req, res) => {
+    res.json({
+      status: "ok",
+      timestamp: Date.now(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      version: process.env.npm_package_version || "1.0.0"
+    });
+  });
+
+  // 就绪检查（K8s/负载均衡器使用）
+  app.get("/ready", (_req, res) => {
+    res.json({ status: "ready" });
+  });
+
   app.use(logger("dev"));
   app.use(cors({ origin: "*" }));
   app.use(express.json({ limit: "100mb" }));
@@ -181,14 +197,46 @@ export default async function startServe(randomPort: Boolean = false) {
 export function closeServe(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (server) {
+      console.log("[关闭中] 正在关闭服务器...");
       server.close((err?: Error) => {
-        if (err) return reject(err);
+        if (err) {
+          console.error("[关闭错误]", err);
+          return reject(err);
+        }
         console.log("[服务已关闭]");
         resolve();
       });
     } else {
       resolve();
     }
+  });
+}
+
+// 优雅关闭处理（云部署必需）
+async function gracefulShutdown(signal: string) {
+  console.log(`\n[${signal}] 收到关闭信号，开始优雅关闭...`);
+  try {
+    await closeServe();
+    console.log("[关闭完成] 进程即将退出");
+    process.exit(0);
+  } catch (err) {
+    console.error("[关闭失败]", err);
+    process.exit(1);
+  }
+}
+
+// 注册进程信号处理
+if (typeof process.versions?.electron === "undefined") {
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+  
+  // 捕获未处理错误
+  process.on("uncaughtException", (err) => {
+    console.error("[未捕获异常]", err);
+    process.exit(1);
+  });
+  process.on("unhandledRejection", (reason) => {
+    console.error("[未处理拒绝]", reason);
   });
 }
 
