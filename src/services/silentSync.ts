@@ -171,10 +171,11 @@ async function syncSettings(userId: string): Promise<void> {
 /**
  * 获取本地设置
  */
-async function getLocalSettings(): Promise<{ key: string; value: string }[]> {
+function getLocalSettings(): { key: string; value: string }[] {
   const db = getLocalDb()
   try {
-    return await db('o_setting').select('key', 'value')
+    const stmt = db.prepare('SELECT key, value FROM o_setting')
+    return stmt.all() as { key: string; value: string }[]
   } catch {
     return []
   }
@@ -212,14 +213,14 @@ async function uploadSetting(key: string, value: string, userId: string): Promis
 /**
  * 下载设置到本地
  */
-async function downloadSetting(key: string, value: string): Promise<void> {
+function downloadSetting(key: string, value: string): void {
   const db = getLocalDb()
   try {
-    const existing = await db('o_setting').where({ key }).first()
+    const existing = db.prepare('SELECT * FROM o_setting WHERE key = ?').get(key)
     if (existing) {
-      await db('o_setting').where({ key }).update({ value })
+      db.prepare('UPDATE o_setting SET value = ? WHERE key = ?').run(value, key)
     } else {
-      await db('o_setting').insert({ key, value })
+      db.prepare('INSERT INTO o_setting (key, value) VALUES (?, ?)').run(key, value)
     }
   } catch (err) {
     console.warn(`[Sync] 下载设置失败 ${key}:`, err)
@@ -229,9 +230,9 @@ async function downloadSetting(key: string, value: string): Promise<void> {
 /**
  * 更新本地设置
  */
-async function updateLocalSetting(key: string, value: string): Promise<void> {
+function updateLocalSetting(key: string, value: string): void {
   const db = getLocalDb()
-  await db('o_setting').where({ key }).update({ value })
+  db.prepare('UPDATE o_setting SET value = ? WHERE key = ?').run(value, key)
 }
 
 /**
