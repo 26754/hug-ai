@@ -127,7 +127,7 @@ export default async function startServe(randomPort: Boolean = false) {
     }
   });
 
-  const router = await import("@/router");
+  const router = await import("./router");
   await router.default(app);
 
   // SPA 回退 - 所有非 API 请求都返回 index.html
