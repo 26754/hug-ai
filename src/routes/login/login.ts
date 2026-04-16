@@ -9,6 +9,7 @@ import { Router, Request, Response } from 'express'
 import neonAuth from '@/services/neonAuth'
 import { authMiddleware } from '@/middleware/auth'
 import { rateLimit } from '@/middleware/rateLimit'
+import { silentSyncOnLogin } from '@/services/silentSync'
 import type { SessionInfo } from '@/services/neonAuth'
 
 const router = Router()
@@ -81,6 +82,11 @@ router.post('/login', loginLimiter, async (req: Request, res: Response) => {
 
     // 清除失败记录
     failedAttempts.delete(clientIp)
+
+    // 静默同步数据（用户无感知）
+    silentSyncOnLogin(result.user.id).catch(err => {
+      console.warn('[Login] 静默同步失败:', err)
+    })
 
     res.json({
       code: 200,
