@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
+import TDesign from 'tdesign-vue-next'
+import 'tdesign-vue-next/dist/tdesign.css'
 
 import App from './App.vue'
 import router from './router'
@@ -32,6 +34,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(i18n)
+app.use(TDesign)
 
 // 初始化主题
 initTheme()

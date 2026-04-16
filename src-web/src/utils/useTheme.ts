@@ -3,6 +3,7 @@
  * 支持自动/浅色/深色模式切换
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import TDesign from 'tdesign-vue-next'
 
 export type ThemeMode = 'auto' | 'light' | 'dark'
 export type FontSize = 12 | 13 | 14 | 16 | 18 | 20
