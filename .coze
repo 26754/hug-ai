@@ -8,4 +8,4 @@ run = ["npx", "tsx", "src/app.ts"]
 
 [deploy]
 build = ["bash", "scripts/deploy.sh"]
-run = ["node", "data/serve/app.js"]
+run = ["node", "--no-deprecation", "data/serve/app.js"]
